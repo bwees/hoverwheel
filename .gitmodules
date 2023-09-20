@@ -1,0 +1,9 @@
+[submodule "lib/bipropellant-hoverboard-api"]
+	path = lib/bipropellant-hoverboard-api
+	url = https://github.com/bipropellant/bipropellant-hoverboard-api
+[submodule "lib/mpu6050"]
+	path = lib/mpu6050
+	url = https://github.com/electroniccats/mpu6050
+[submodule "lib/PIDArduino"]
+	path = lib/PIDArduino
+	url = https://github.com/DonnyCraft1/PIDArduino
