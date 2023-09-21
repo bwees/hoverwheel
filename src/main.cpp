@@ -12,7 +12,7 @@ HoverboardAPI hoverboard = HoverboardAPI(serialWrapper);
 MPU6050 mpu;
 
 // enable debug mode
-// #define DEBUG
+//#define DEBUG
 
 #define FOOTPAD_SENSOR_THRESHOLD 600
 #define FOOTPAD_DEACTIVATE_DELAY 100
@@ -38,7 +38,7 @@ PIDController pid;
 void setup() {
   Wire.begin();
   // Wire.setClock(400000);
-  Serial2.begin(250000);
+  Serial2.begin(115200);
 
   mpu.initialize();
 
@@ -64,6 +64,8 @@ int pushback_start_timer, pushback_end_timer;
 int state = STATE_IDLE;
 int microsTimer, loops;
 int targetAngle, pwm_cmd;
+int pushback_start_time = 0;
+int pushback_end_time = 0; // time when pushback started and ended
 
 int16_t ax, ay, az;
 float board_tilt;
@@ -109,6 +111,7 @@ void loop() {
       // for more than PUSHBACK_TIME ms, initiate pushback
       if (millis() - pushback_start_timer > PUSHBACK_TIME) {
         state = STATE_PUSHBACK;
+        pushback_start_time = millis();
       }
     }
   } else if (abs(pwm_cmd) < MAX_PWM*PUSHBACK_THRESHOLD) {
@@ -123,6 +126,7 @@ void loop() {
       // for more than PUSHBACK_TIME ms, end pushback
       if (millis() - pushback_end_timer > PUSHBACK_TIME) {
         state = STATE_RIDING;
+        pushback_end_time = millis();
       }
     }
   }
@@ -130,12 +134,14 @@ void loop() {
   // fade in and out of pushback 
   if (state == STATE_PUSHBACK) {
     // fade in pushback at PUSHBACK_SPEED deg/s to PUSHBACK_AMOUNT
-    int pushback_duration = millis() - pushback_start_timer - PUSHBACK_TIME;
-    targetAngle = constrain(pushback_duration*(PUSHBACK_SPEED/1000), 0, PUSHBACK_AMOUNT);
-  } else {
+    int pushback_duration = millis() - pushback_start_time;
+    targetAngle = constrain(pushback_duration*(PUSHBACK_SPEED/1000.0), 0, PUSHBACK_AMOUNT);
+
+  } else if (state == STATE_RIDING && pushback_start_time != 0) {
     // fade out pushback at PUSHBACK_SPEED deg/s to 0
-    int end_pushback_duration = millis() - pushback_end_timer - PUSHBACK_TIME;
-    targetAngle = constrain(PUSHBACK_AMOUNT - end_pushback_duration*(PUSHBACK_SPEED/1000), 0, PUSHBACK_AMOUNT);
+    int end_pushback_duration = millis() - pushback_end_time;
+    targetAngle = constrain(PUSHBACK_AMOUNT - end_pushback_duration*(PUSHBACK_SPEED/1000.0), 0, PUSHBACK_AMOUNT);
+    
   }
   
   ///////////// LEVELING LOGIC /////////////
@@ -161,7 +167,7 @@ void loop() {
     Serial2.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state));
   #endif
 
-  // limit loop to 1000Hz
-  while (micros() - startMicros < 1000);
+  // limit loop to 500Hz
+  while (micros() - startMicros < 2000);
   // hoverboard.sendDifferentialPWM(100, 30, PROTOCOL_SOM_NOACK);
 }
