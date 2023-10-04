@@ -7,3 +7,6 @@
 [submodule "lib/PIDArduino"]
 	path = lib/PIDArduino
 	url = https://github.com/DonnyCraft1/PIDArduino
+[submodule "lib/MPU6050_tockn"]
+	path = lib/MPU6050_tockn
+	url = https://github.com/tockn/MPU6050_tockn

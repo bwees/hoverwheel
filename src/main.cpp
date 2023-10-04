@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <HoverboardAPI.h>
 #include <Wire.h>
-#include "MPU6050.h"
+#include "MPU6050_tockn.h"
 #include "PIDController.h"
 
 int serialWrapper(unsigned char *data, int len) {
@@ -9,10 +9,10 @@ int serialWrapper(unsigned char *data, int len) {
 }
 
 HoverboardAPI hoverboard = HoverboardAPI(serialWrapper);
-MPU6050 mpu;
+MPU6050 mpu(Wire);
 
 // enable debug mode
-//#define DEBUG
+#define DEBUG
 
 #define FOOTPAD_SENSOR_THRESHOLD 600
 #define FOOTPAD_DEACTIVATE_DELAY 100
@@ -35,16 +35,21 @@ MPU6050 mpu;
 #define KD 400
 PIDController pid;
 
+bool last_footpad = false;
+int last_footpad_change;
+int pushback_start_timer, pushback_end_timer;
+int state = STATE_IDLE;
+int targetAngle, pwm_cmd;
+int pushback_start_time = 0;
+int pushback_end_time = 0; // time when pushback started and ended
+
 void setup() {
   Wire.begin();
-  // Wire.setClock(400000);
+  Wire.setClock(400000);
   Serial2.begin(115200);
 
-  mpu.initialize();
-
-  if (!mpu.testConnection()) {
-    Serial2.println("MPU6050 connection failed");
-  }
+  mpu.begin();
+  mpu.setGyroOffsets(-1.78, -2.08, 0.94);
 
   pid.begin();
   pid.tune(KP, KI, KD);
@@ -54,28 +59,12 @@ void setup() {
   pid.limit(-600, 600);
 }
 
-float calc_pwm_command(int targetAngle, int board_tilt) {
-  return 0;
-}
-
-bool last_footpad = false;
-int last_footpad_change;
-int pushback_start_timer, pushback_end_timer;
-int state = STATE_IDLE;
-int microsTimer, loops;
-int targetAngle, pwm_cmd;
-int pushback_start_time = 0;
-int pushback_end_time = 0; // time when pushback started and ended
-
-int16_t ax, ay, az;
-float board_tilt;
-
 void loop() {
   // Loop Performance Timer
   long startMicros = micros();
 
   //////////////// FOOTPADS //////////////// 
-  bool footpad = digitalRead(PC14);
+  bool footpad = !digitalRead(PC14);
   bool footpad_change = footpad != last_footpad;
 
   // record when the footpad last changed state
@@ -146,8 +135,8 @@ void loop() {
   
   ///////////// LEVELING LOGIC /////////////
   // Get MPU Data
-  mpu.getAcceleration(&ax, &ay, &az);
-  board_tilt = (atan2(ay, az)*180.0)/M_PI;
+  mpu.update();
+  float board_tilt = mpu.getAngleX();
 
   // get PWM command
   pid.setpoint(targetAngle);
@@ -161,13 +150,12 @@ void loop() {
   }
 
   #ifndef DEBUG
-    hoverboard.sendDifferentialPWM(pwm_cmd, pwm_cmd, PROTOCOL_SOM_NOACK);
+    hoverboard.sendDifferentialPWM(pwm_cmd, -pwm_cmd, PROTOCOL_SOM_NOACK);
+    // limit loop to 500Hz
   #else
     // put data in Serial Plotter compatable format
-    Serial2.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state));
+    Serial2.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state) + ",FOOTPAD:" + String(footpad) + ",LOOP_TIME:" + String(micros() - startMicros));
   #endif
 
-  // limit loop to 500Hz
   while (micros() - startMicros < 2000);
-  // hoverboard.sendDifferentialPWM(100, 30, PROTOCOL_SOM_NOACK);
 }
