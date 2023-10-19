@@ -3,6 +3,7 @@
 #include <Wire.h>
 #include "MPU6050_tockn.h"
 #include "PIDController.h"
+#include <FastLED.h>
 
 int serialWrapper(unsigned char *data, int len) {
  return (int) Serial2.write(data,len);
@@ -16,6 +17,7 @@ MPU6050 mpu(Wire);
 
 #define FOOTPAD_SENSOR_THRESHOLD 600
 #define FOOTPAD_DEACTIVATE_DELAY 100
+#define FOOTPAD_PIN PA4
 
 #define MAX_PWM 600
 
@@ -42,6 +44,11 @@ int state = STATE_IDLE;
 int targetAngle, pwm_cmd;
 int pushback_start_time = 0;
 int pushback_end_time = 0; // time when pushback started and ended
+int pushback_last_beep = -1;
+
+#define NUM_LEDS 8
+CRGB leds[NUM_LEDS];
+float hue = 0;
 
 void setup() {
   Wire.begin();
@@ -55,16 +62,30 @@ void setup() {
   pid.tune(KP, KI, KD);
 
   pinMode(PB4, OUTPUT);
-  pinMode(PC14, INPUT_PULLUP);
+  pinMode(FOOTPAD_PIN, INPUT_PULLUP);
   pid.limit(-600, 600);
+
+  FastLED.addLeds<WS2812B, PC15, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
+  FastLED.setBrightness(100);
+  FastLED.showColor(CRGB::White);
+  FastLED.show();
 }
 
 void loop() {
   // Loop Performance Timer
   long startMicros = micros();
 
+  // Get MPU Data
+  mpu.update();
+  float board_tilt = mpu.getAngleX();
+
+  // Get Board Telemetry
+  int battery_voltage = hoverboard.getBatteryVoltage();
+  int motor_speed = hoverboard.getSpeed0_kmh();
+
   //////////////// FOOTPADS //////////////// 
-  bool footpad = !digitalRead(PC14);
+  Serial2.println(digitalRead(FOOTPAD_PIN));
+  bool footpad = false;
   bool footpad_change = footpad != last_footpad;
 
   // record when the footpad last changed state
@@ -73,7 +94,8 @@ void loop() {
   }
 
   // if the footpad is released, and the board is not idle
-  if (!footpad && state != STATE_IDLE) {
+  // and the board speed is less than 2 km/h
+  if (!footpad && state != STATE_IDLE && motor_speed < 2) {
     // if the footpad has been released for more than FOOTPAD_DEACTIVATE_DELAY ms
     if (millis() - last_footpad_change > FOOTPAD_DEACTIVATE_DELAY) {
       state = STATE_IDLE;
@@ -81,7 +103,8 @@ void loop() {
   } 
 
   // if the footpad is pressed, and the board is idle
-  if (footpad && state == STATE_IDLE) {
+  // and the board is +- 10 degrees from the target angle
+  if (footpad && state == STATE_IDLE && abs(board_tilt - targetAngle) < 10) {
     state = STATE_RIDING;
   }
 
@@ -130,13 +153,20 @@ void loop() {
     // fade out pushback at PUSHBACK_SPEED deg/s to 0
     int end_pushback_duration = millis() - pushback_end_time;
     targetAngle = constrain(PUSHBACK_AMOUNT - end_pushback_duration*(PUSHBACK_SPEED/1000.0), 0, PUSHBACK_AMOUNT);
-    
+
   }
   
+  // handle pushback beeps
+  if (state == STATE_PUSHBACK) {
+    int time_since_beep = millis() - pushback_start_time;
+
+    if (time_since_beep > 1000) {
+      pushback_start_time = millis();
+      hoverboard.sendBuzzer();
+    }
+  }
+
   ///////////// LEVELING LOGIC /////////////
-  // Get MPU Data
-  mpu.update();
-  float board_tilt = mpu.getAngleX();
 
   // get PWM command
   pid.setpoint(targetAngle);
