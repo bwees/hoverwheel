@@ -5,3 +5,6 @@
 	path = lib/PIDArduino
 	url = https://github.com/DonnyCraft1/PIDArduino
 
+[submodule "lib/mpu6050"]
+	path = lib/mpu6050
+	url = https://github.com/ElectronicCats/mpu6050
