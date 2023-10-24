@@ -62,13 +62,13 @@ void setup() {
   pid.tune(KP, KI, KD);
 
   pinMode(PB4, OUTPUT);
-  pinMode(FOOTPAD_PIN, INPUT_PULLUP);
+  pinMode(FOOTPAD_PIN, INPUT);
   pid.limit(-600, 600);
 
   FastLED.addLeds<WS2812B, PC15, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
   FastLED.setBrightness(100);
-  FastLED.showColor(CRGB::White);
-  FastLED.show();
+  FastLED.showColor(CRGB::Blue);
+
 }
 
 void loop() {
@@ -84,8 +84,7 @@ void loop() {
   int motor_speed = hoverboard.getSpeed0_kmh();
 
   //////////////// FOOTPADS //////////////// 
-  Serial2.println(digitalRead(FOOTPAD_PIN));
-  bool footpad = false;
+  bool footpad = digitalRead(FOOTPAD_PIN);
   bool footpad_change = footpad != last_footpad;
 
   // record when the footpad last changed state
@@ -160,9 +159,9 @@ void loop() {
   if (state == STATE_PUSHBACK) {
     int time_since_beep = millis() - pushback_start_time;
 
-    if (time_since_beep > 1000) {
+    if (time_since_beep > 250) {
       pushback_start_time = millis();
-      hoverboard.sendBuzzer();
+      hoverboard.sendBuzzer(4, 0, 50, PROTOCOL_SOM_NOACK);
     }
   }
 
