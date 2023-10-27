@@ -4,6 +4,7 @@
 #include "MPU6050_tockn.h"
 #include "PIDController.h"
 #include <FastLED.h>
+#include <SoftwareSerial.h>
 
 int serialWrapper(unsigned char *data, int len) {
  return (int) Serial2.write(data,len);
@@ -46,17 +47,17 @@ int pushback_start_time = 0;
 int pushback_end_time = 0; // time when pushback started and ended
 int pushback_last_beep = -1;
 
-#define NUM_LEDS 8
+#define NUM_LEDS 12
 CRGB leds[NUM_LEDS];
 float hue = 0;
 
 void setup() {
   Wire.begin();
   Wire.setClock(400000);
-  Serial2.begin(115200);
+  Serial2.begin(9600);
 
   mpu.begin();
-  mpu.setGyroOffsets(-1.78, -2.08, 0.94);
+  mpu.setGyroOffsets(-0.96, -0.94, 0.47);
 
   pid.begin();
   pid.tune(KP, KI, KD);
@@ -67,11 +68,14 @@ void setup() {
 
   FastLED.addLeds<WS2812B, PC15, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
   FastLED.setBrightness(100);
-  FastLED.showColor(CRGB::Blue);
-
 }
 
 void loop() {
+  // show hue on led strip
+  hue += 1;
+
+  
+  FastLED.showColor(CHSV(hue, 255, 255));
   // Loop Performance Timer
   long startMicros = micros();
 
@@ -80,8 +84,23 @@ void loop() {
   float board_tilt = mpu.getAngleX();
 
   // Get Board Telemetry
+
+  hoverboard.requestRead(HoverboardAPI::Codes::sensHall, PROTOCOL_SOM_NOACK);
+
+  // Read and Process Incoming data
+  int i=0;
+  while( Serial2.available() && i++ < 1024 && micros()-startMicros < 500) { // read maximum 1024 bytes at once.
+    SerialBT.println("READING");
+    hoverboard.protocolPush( Serial2.read() );
+  }
+
+  hoverboard.protocolTick();
+  
+
   int battery_voltage = hoverboard.getBatteryVoltage();
   int motor_speed = hoverboard.getSpeed0_kmh();
+
+  // SerialBT.println(motor_speed);
 
   //////////////// FOOTPADS //////////////// 
   bool footpad = digitalRead(FOOTPAD_PIN);
@@ -183,7 +202,8 @@ void loop() {
     // limit loop to 500Hz
   #else
     // put data in Serial Plotter compatable format
-    Serial2.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state) + ",FOOTPAD:" + String(footpad) + ",LOOP_TIME:" + String(micros() - startMicros));
+    // SerialBT.println(2);
+    SerialBT.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state) + ",FOOTPAD:" + String(footpad) + ",LOOP_TIME:" + String(micros() - startMicros));
   #endif
 
   while (micros() - startMicros < 2000);
