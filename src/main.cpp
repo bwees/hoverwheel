@@ -12,19 +12,23 @@ int serialWrapper(unsigned char *data, int len) {
 HoverboardAPI hoverboard = HoverboardAPI(serialWrapper);
 MPU6050 mpu(Wire);
 
+//macro that returns +1/-1 depending on the sign of the argument
+#define SIGN(x) ((x > 0) - (x < 0))
+
 // enable debug mode
 // #define DEBUG
 
-#define FOOTPAD_SENSOR_THRESHOLD 600
 #define FOOTPAD_DEACTIVATE_DELAY 100
 #define FOOTPAD_PIN PA4
 
 #define MAX_PWM 600
 
-#define PUSHBACK_THRESHOLD .8
-#define PUSHBACK_TIME 2000
-#define PUSHBACK_SPEED 10 // degrees per second
-#define PUSHBACK_AMOUNT 15 // degrees
+#define PUSHBACK_THRESHOLD .85 // % of max pwm
+#define PUSHBACK_TIME 500 // ms
+#define PUSHBACK_SPEED 10.f // degrees per second
+#define PUSHBACK_AMOUNT 4.f // degrees
+#define RIDE_ANGLE 2.f // degrees
+
 
 // Board States
 #define STATE_IDLE 0
@@ -32,18 +36,19 @@ MPU6050 mpu(Wire);
 #define STATE_PUSHBACK 2
 
 // PID Controller constants
-#define KP 300
+#define KP 1200
 #define KI 0
-#define KD 0
+#define KD 400
 PIDController pid;
 
 bool last_footpad = false;
 int last_footpad_change;
 int pushback_start_timer, pushback_end_timer;
 int state = STATE_IDLE;
-int targetAngle = 2;
+float targetAngle = 0;
 int pwm_cmd;
 int pushback_start_time = 0;
+int last_beep = -1;
 int pushback_end_time = 0; // time when pushback started and ended
 int pushback_last_beep = -1;
 
@@ -55,7 +60,6 @@ int filter_last_update = micros();
 
 #define NUM_LEDS 12
 CRGB leds[NUM_LEDS];
-float hue = 0;
 
 void setup() {
   Wire.begin();
@@ -70,15 +74,13 @@ void setup() {
 
   pinMode(PB4, OUTPUT);
   pinMode(FOOTPAD_PIN, INPUT);
-  pid.limit(-600, 600);
+  pid.limit(-MAX_PWM, MAX_PWM);
 
   FastLED.addLeds<WS2812B, PC15, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
   FastLED.setBrightness(100);
 }
 
 void loop() {
-  // show hue on led strip
-  hue += 1;
 
   // Loop Performance Timer
   long startMicros = micros();
@@ -108,6 +110,7 @@ void loop() {
   // float pitch = asin(2.0 * (q[0] * q[2] - q[1] * q[3]));
   float board_tilt = atan2((mahony_q[0] * mahony_q[1] + mahony_q[2] * mahony_q[3]), 0.5 - (mahony_q[1] * mahony_q[1] + mahony_q[2] * mahony_q[2]));
   board_tilt *= 180.0/PI;
+  board_tilt += RIDE_ANGLE;
 
 
   int battery_voltage = hoverboard.getBatteryVoltage();
@@ -124,7 +127,7 @@ void loop() {
 
   // if the footpad is released, and the board is not idle
   // and the board speed is less than 2 km/h
-  if (!footpad && state != STATE_IDLE) {
+  if (!footpad && state != STATE_IDLE && abs(pwm_cmd) < 150) {
     // if the footpad has been released for more than FOOTPAD_DEACTIVATE_DELAY ms
     if (millis() - last_footpad_change > FOOTPAD_DEACTIVATE_DELAY) {
       state = STATE_IDLE;
@@ -174,23 +177,19 @@ void loop() {
 
   // fade in and out of pushback 
   if (state == STATE_PUSHBACK) {
-    // fade in pushback at PUSHBACK_SPEED deg/s to PUSHBACK_AMOUNT
-    int pushback_duration = millis() - pushback_start_time;
-    targetAngle = constrain(pushback_duration*(PUSHBACK_SPEED/1000.0), 0, PUSHBACK_AMOUNT);
-
+    float pushback_duration = millis() - pushback_start_time;
+    targetAngle = min(PUSHBACK_SPEED*(pushback_duration/1000.f), (float) PUSHBACK_AMOUNT) * SIGN(pwm_cmd);
   } else if (state == STATE_RIDING && pushback_start_time != 0) {
-    // fade out pushback at PUSHBACK_SPEED deg/s to 0
-    int end_pushback_duration = millis() - pushback_end_time;
-    targetAngle = constrain(PUSHBACK_AMOUNT - end_pushback_duration*(PUSHBACK_SPEED/1000.0), 0, PUSHBACK_AMOUNT);
-
+    float pushback_end_duration = millis() - pushback_end_time;
+    targetAngle = max(PUSHBACK_AMOUNT - PUSHBACK_SPEED*(pushback_end_duration/1000.f), 0.f) * SIGN(pwm_cmd);
   }
   
   // handle pushback beeps
   if (state == STATE_PUSHBACK) {
-    int time_since_beep = millis() - pushback_start_time;
+    int time_since_beep = millis() - last_beep;
 
     if (time_since_beep > 250) {
-      pushback_start_time = millis();
+      last_beep = millis();
       hoverboard.sendBuzzer(4, 0, 50, PROTOCOL_SOM_NOACK);
     }
   }
@@ -209,10 +208,14 @@ void loop() {
   }
 
 
-  if (pwm_cmd < 3) {
-    FastLED.showColor(CHSV(0, 255, 255));
-  } else {
-    FastLED.showColor(CHSV(120, 255, 255));
+  if (state == STATE_IDLE) {
+    FastLED.showColor(CRGB::Blue);
+  }
+  if ( state == STATE_RIDING) {
+    FastLED.showColor(CRGB::Green);
+  } 
+  if (state == STATE_PUSHBACK) {
+    FastLED.showColor(CRGB::Red);
   }
 
 
