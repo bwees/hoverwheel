@@ -1,44 +1,29 @@
 #include <Arduino.h>
 #include <HoverboardAPI.h>
 #include <Wire.h>
-#include "MPU6050_tockn.h"
+#include <MPU6050.h>
 #include "PIDController.h"
 #include <FastLED.h>
+#include <ArduinoBLE.h>
+
+#include "config.h"
+#include "mahony.h"
 
 int serialWrapper(unsigned char *data, int len) {
- return (int) Serial2.write(data,len);
+ return (int) Serial.write(data,len);
 }
 
 HoverboardAPI hoverboard = HoverboardAPI(serialWrapper);
-MPU6050 mpu(Wire);
+MPU6050 mpu;
 
 //macro that returns +1/-1 depending on the sign of the argument
 #define SIGN(x) ((x > 0) - (x < 0))
-
-// enable debug mode
-// #define DEBUG
-
-#define FOOTPAD_DEACTIVATE_DELAY 100
-#define FOOTPAD_PIN PA4
-
-#define MAX_PWM 600
-
-#define PUSHBACK_THRESHOLD .85 // % of max pwm
-#define PUSHBACK_TIME 500 // ms
-#define PUSHBACK_SPEED 10.f // degrees per second
-#define PUSHBACK_AMOUNT 4.f // degrees
-#define RIDE_ANGLE 2.f // degrees
-
 
 // Board States
 #define STATE_IDLE 0
 #define STATE_RIDING 1
 #define STATE_PUSHBACK 2
 
-// PID Controller constants
-#define KP 1200
-#define KI 0
-#define KD 400
 PIDController pid;
 
 bool last_footpad = false;
@@ -51,60 +36,135 @@ int pushback_start_time = 0;
 int last_beep = -1;
 int pushback_end_time = 0; // time when pushback started and ended
 int pushback_last_beep = -1;
-
-void Mahony_update(float ax, float ay, float az, float gx, float gy, float gz, float deltat);
-float mahony_q[4] = {1.0, 0.0, 0.0, 0.0};
-#define FILTER_KP 2.0
-#define FILTER_KI 0
+float step_up_start = 0;
 int filter_last_update = micros();
 
-#define NUM_LEDS 12
 CRGB leds[NUM_LEDS];
 
-void setup() {
-  Wire.begin();
-  Wire.setClock(400000);
-  Serial2.begin(115200);
+// BLE
+BLEService pidService("19B10000-E8F2-537E-4F6C-D104768A1215"); // create service
 
-  mpu.begin();
-  mpu.setGyroOffsets(-0.96, -0.94, 0.47);
+// create switch characteristic and allow remote device to read and write
+BLEIntCharacteristic pChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
+BLEIntCharacteristic iChar("29B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
+BLEIntCharacteristic dChar("39B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
+
+void blePeripheralConnectHandler(BLEDevice central) {
+  // central connected event handler
+  Serial.print("Connected event, central: ");
+  Serial.println(central.address());
+}
+
+void blePeripheralDisconnectHandler(BLEDevice central) {
+  // central disconnected event handler
+  Serial.print("Disconnected event, central: ");
+  Serial.println(central.address());
+}
+
+void pidCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {
+  int p = pChar.value();
+  int i = iChar.value();
+  int d = dChar.value();
+  pid.tune(p, i, d);
+}
+
+
+void setup() {
+  Wire.begin(2, 3);
+  Wire.setClock(400000);
+  Serial.begin(115200);
+
+  mpu.initialize();
+  mpu.setDLPFMode(MPU6050_IMU::MPU6050_DLPF_BW_98); // 98Hz
+
+  mpu.setXGyroOffset(145);
+  mpu.setYGyroOffset(32);
+  mpu.setZGyroOffset(-33);
+  mpu.setXAccelOffset(-5558);
+  mpu.setYAccelOffset(-2118);
+  mpu.setZAccelOffset(1218);
 
   pid.begin();
   pid.tune(KP, KI, KD);
 
-  pinMode(PB4, OUTPUT);
-  pinMode(FOOTPAD_PIN, INPUT);
+  pinMode(FOOTPAD_PIN, INPUT_PULLUP);
   pid.limit(-MAX_PWM, MAX_PWM);
 
-  FastLED.addLeds<WS2812B, PC15, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
-  FastLED.setBrightness(100);
+
+
+  // FastLED.addLeds<WS2812, 8, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
+
+  // begin initialization
+  if (!BLE.begin()) {
+    Serial.println("starting Bluetooth® Low Energy module failed!");
+
+    while (1);
+  }
+
+  BLE.setLocalName("Hoverwheel");
+  BLE.setDeviceName("Hoverwheel");
+
+  // BLE
+  BLE.setAdvertisedService(pidService);
+
+  // add the characteristic to the service
+  pidService.addCharacteristic(pChar);
+  pidService.addCharacteristic(iChar);
+  pidService.addCharacteristic(dChar);
+
+  // add service
+  BLE.addService(pidService);
+
+  // assign event handlers for connected, disconnected to peripheral
+  BLE.setEventHandler(BLEConnected, blePeripheralConnectHandler);
+  BLE.setEventHandler(BLEDisconnected, blePeripheralDisconnectHandler);
+
+  // assign event handlers for characteristic
+  pChar.setEventHandler(BLEWritten, pidCharacteristicWritten);
+  iChar.setEventHandler(BLEWritten, pidCharacteristicWritten);
+  dChar.setEventHandler(BLEWritten, pidCharacteristicWritten);
+
+  // set an initial value for the characteristic
+  pChar.writeValue(KP);
+  iChar.writeValue(KI);
+  dChar.writeValue(KD);
+  
+  // start advertising
+  BLE.advertise();
 }
 
 void loop() {
-
   // Loop Performance Timer
   long startMicros = micros();
+  BLE.poll();
 
-  // Get MPU Data
-  mpu.update();
   int now = micros();
   // Serial.println(now - filter_last_update);
   float deltat = (now - filter_last_update) * 1.0e-6; //seconds since last update
   filter_last_update = now;
 
   // get MPU data
-  float ax = mpu.getAccX();
-  float ay = mpu.getAccY();
-  float az = mpu.getAccZ();
+  int16_t rax, ray, raz;
+  int16_t rgx, rgy, rgz;
+  mpu.getMotion6(&rax, &ray, &raz, &rgx, &rgy, &rgz);
 
-  float gx = mpu.getGyroX() * (PI/180.0);
-  float gy = mpu.getGyroY() * (PI/180.0);
-  float gz = mpu.getGyroZ() * (PI/180.0);
+  // convert to G's
+  float ax = ((float) rax) / 16384.0;
+  float ay = ((float) ray) / 16384.0;
+  float az = ((float) raz) / 16384.0;
 
+  // convert to degrees per second
+  float gx = ((float) rgx) / 131.0;
+  float gy = ((float) rgy) / 131.0;
+  float gz = ((float) rgz) / 131.0;
+
+  // convert to radians per second
+  gx *= (PI/180.0);
+  gy *= (PI/180.0);
+  gz *= (PI/180.0);
+  
   // update filter
   Mahony_update(ax, ay, az, gx, gy, gz, deltat);
-
-  // Serial2.println(deltat);
 
   // float roll  = atan2((q[0] * q[1] + q[2] * q[3]), 0.5 - (q[1] * q[1] + q[2] * q[2]));
   // float pitch = asin(2.0 * (q[0] * q[2] - q[1] * q[3]));
@@ -136,8 +196,18 @@ void loop() {
 
   // if the footpad is pressed, and the board is idle
   // and the board is +- 10 degrees from the target angle
-  if (footpad && state == STATE_IDLE && abs(board_tilt - targetAngle) < 3) {
+  if (footpad && state == STATE_IDLE && abs(board_tilt - targetAngle) < STEP_UP_ANGLE) {
     state = STATE_RIDING;
+    targetAngle = board_tilt;
+    step_up_start = millis();
+  }
+
+  // step up fade to target angle
+  if (state == STATE_RIDING) {
+    float step_up_duration = millis() - step_up_start;
+
+    
+    targetAngle = min(-STEP_UP_ANGLE + STEP_UP_SPEED*(step_up_duration/1000.f), (float) RIDE_ANGLE);
   }
 
   //////////////// PUSHBACK ////////////////
@@ -154,7 +224,7 @@ void loop() {
 
       // for more than PUSHBACK_TIME ms, initiate pushback
       if (millis() - pushback_start_timer > PUSHBACK_TIME) {
-        state = STATE_PUSHBACK;
+        // state = STATE_PUSHBACK;
         pushback_start_time = millis();
       }
     }
@@ -179,9 +249,15 @@ void loop() {
   if (state == STATE_PUSHBACK) {
     float pushback_duration = millis() - pushback_start_time;
     targetAngle = min(PUSHBACK_SPEED*(pushback_duration/1000.f), (float) PUSHBACK_AMOUNT) * SIGN(pwm_cmd);
+
   } else if (state == STATE_RIDING && pushback_start_time != 0) {
     float pushback_end_duration = millis() - pushback_end_time;
     targetAngle = max(PUSHBACK_AMOUNT - PUSHBACK_SPEED*(pushback_end_duration/1000.f), 0.f) * SIGN(pwm_cmd);
+
+    // reset pushback timer if target angle is 0, stops animation
+    if (targetAngle == 0) {
+      pushback_start_time = 0;
+    }
   }
   
   // handle pushback beeps
@@ -221,82 +297,9 @@ void loop() {
 
   #ifndef DEBUG
     hoverboard.sendDifferentialPWM(pwm_cmd, pwm_cmd, PROTOCOL_SOM_NOACK);
-    // limit loop to 500Hz
   #else
-    // put data in Serial Plotter compatable format
-    // SerialBT.println(2);
-    Serial2.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state) + ",FOOTPAD:" + String(footpad) + ",LOOP_TIME:" + String(micros() - startMicros));
+    Serial.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state) + ",FOOTPAD:" + String(footpad) + ",LOOP_TIME:" + String(micros() - startMicros));
   #endif
 
   while (micros() - startMicros < 2000);
-}
-
-
-void Mahony_update(float ax, float ay, float az, float gx, float gy, float gz, float deltat) {
-  float recipNorm, accelNorm;
-  float qa, qb, qc;
-  float vx, vy, vz;
-  float ex, ey, ez;
-
-  // Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
-
-  //  tmp = ax * ax + ay * ay + az * az;
-  accelNorm = sqrt(ax * ax + ay * ay + az * az);
-
-  // ignore accelerometer if false (tested OK, SJR)
-  if (accelNorm > 0.0)
-  {
-
-    // Normalise accelerometer (assumed to measure the direction of gravity in body frame)
-    recipNorm = 1.0 / sqrt(accelNorm);
-    ax *= recipNorm;
-    ay *= recipNorm;
-    az *= recipNorm;
-
-    // Estimated direction of gravity in the body frame (factor of two divided out)
-    vx = mahony_q[1] * mahony_q[3] - mahony_q[0] * mahony_q[2];
-    vy = mahony_q[0] * mahony_q[1] + mahony_q[2] * mahony_q[3];
-    vz = mahony_q[0] * mahony_q[0] - 0.5f + mahony_q[3] * mahony_q[3];
-
-    // Error is cross product between estimated and measured direction of gravity in body frame
-    // (half the actual magnitude)
-    ex = (ay * vz - az * vy);
-    ey = (az * vx - ax * vz);
-    ez = (ax * vy - ay * vx);
-
-    // Compute and apply to gyro term the integral feedback, if enabled
-    if (FILTER_KI > 0.0f) {
-      gx += FILTER_KI * ex * deltat;  // apply integral feedback
-      gy += FILTER_KI * ey * deltat;
-      gz += FILTER_KI * ez * deltat;
-    }
-
-    // Apply proportional feedback to gyro term
-    gx += FILTER_KP * ex;
-    gy += FILTER_KP * ey;
-    gz += FILTER_KP * ez;
-  }
-
-  // Integrate rate of change of mahony_q, given by gyro term
-  // rate of change = current orientation mahony_q (qmult) gyro rate
-
-  gx *= deltat/2.f;   // pre-multiply common factors
-  gy *= deltat/2.f;
-  gz *= deltat/2.f;
-  qa = mahony_q[0];
-  qb = mahony_q[1];
-  qc = mahony_q[2];
-
-  //add qmult*delta_t to current orientation
-  mahony_q[0] += (-qb * gx - qc * gy - mahony_q[3] * gz);
-  mahony_q[1] += (qa * gx + qc * gz - mahony_q[3] * gy);
-  mahony_q[2] += (qa * gy - qb * gz + mahony_q[3] * gx);
-  mahony_q[3] += (qa * gz + qb * gy - qc * gx);
-
-  // Normalise mahony_q
-  recipNorm = 1.0 / sqrt(mahony_q[0] * mahony_q[0] + mahony_q[1] * mahony_q[1] + mahony_q[2] * mahony_q[2] + mahony_q[3] * mahony_q[3]);
-  mahony_q[0] = mahony_q[0] * recipNorm;
-  mahony_q[1] = mahony_q[1] * recipNorm;
-  mahony_q[2] = mahony_q[2] * recipNorm;
-  mahony_q[3] = mahony_q[3] * recipNorm;
 }
