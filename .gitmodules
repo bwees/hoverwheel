@@ -1,6 +1,6 @@
-[submodule "lib/firmware/bipropellant-hoverboard-api"]
-	path = lib/firmware/bipropellant-hoverboard-api
+[submodule "firmware/lib/bipropellant-hoverboard-api"]
+	path = firmware/lib/bipropellant-hoverboard-api
 	url = https://github.com/bipropellant/bipropellant-hoverboard-api
-[submodule "lib/firmware/mpu6050"]
-	path = lib/firmware/mpu6050
+[submodule "firmware/lib/mpu6050"]
+	path = firmware/lib/mpu6050
 	url = https://github.com/ElectronicCats/mpu6050
