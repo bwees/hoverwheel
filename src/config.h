@@ -20,9 +20,9 @@
 #define STEP_UP_SPEED 90.f // degrees per second
 
 // PID Controller constants
-#define KP 1200
-#define KI 0
-#define KD 0
+#define P_GAIN 1200
+#define I_GAIN 0
+#define RP_GAIN 0
 
 // Gyro Filter
 #define FILTER_KP 2

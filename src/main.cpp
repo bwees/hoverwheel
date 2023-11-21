@@ -38,16 +38,30 @@ int pushback_end_time = 0; // time when pushback started and ended
 int pushback_last_beep = -1;
 float step_up_start = 0;
 int filter_last_update = micros();
+int last_ble_update = millis();
+
+int kp = P_GAIN;
+int fkp = FILTER_KP;
+int krp = RP_GAIN;
 
 CRGB leds[NUM_LEDS];
 
 // BLE
-BLEService pidService("19B10000-E8F2-537E-4F6C-D104768A1215"); // create service
+BLEService controlService("19b10000-e8f2-537e-4f6c-d104768a1215"); // create service
+BLEService statsService("19a10000-e8f2-537e-4f6c-d104768a1215"); // create service
 
 // create switch characteristic and allow remote device to read and write
-BLEIntCharacteristic pChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
-BLEIntCharacteristic iChar("29B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
-BLEIntCharacteristic dChar("39B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
+BLEIntCharacteristic pChar("19b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLEWrite);
+BLEIntCharacteristic rpChar("39b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLEWrite);
+BLEFloatCharacteristic fkpChar("a9b1cc01-e8f2-537e-4f6c-d104768a1214", BLERead | BLEWrite);
+
+BLEIntCharacteristic stateChar("49b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
+BLEFloatCharacteristic angleChar("59B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
+BLEIntCharacteristic pwmChar("69b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
+BLEIntCharacteristic footpadAChar("79a10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
+BLEIntCharacteristic footpadBChar("79b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
+BLEIntCharacteristic loopTimeChar("89b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
+BLEFloatCharacteristic targetChar("99b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
 
 void blePeripheralConnectHandler(BLEDevice central) {
   // central connected event handler
@@ -62,10 +76,17 @@ void blePeripheralDisconnectHandler(BLEDevice central) {
 }
 
 void pidCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {
-  int p = pChar.value();
-  int i = iChar.value();
-  int d = dChar.value();
-  pid.tune(p, i, d);
+  kp = pChar.value();
+  fkp = fkpChar.value();
+  krp = rpChar.value();
+}
+
+int calc_pid(float currentAngle, float rotationRate) {
+  float error = targetAngle - currentAngle;
+  float p_comp = error * kp;
+  float rp_comp = rotationRate * krp;
+  return constrain(p_comp + rp_comp, -MAX_PWM, MAX_PWM);
+
 }
 
 
@@ -84,14 +105,9 @@ void setup() {
   mpu.setYAccelOffset(-2118);
   mpu.setZAccelOffset(1218);
 
-  pid.begin();
-  pid.tune(KP, KI, KD);
 
   pinMode(FOOTPAD_PIN, INPUT_PULLUP);
   pid.limit(-MAX_PWM, MAX_PWM);
-
-
-
   // FastLED.addLeds<WS2812, 8, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
 
   // begin initialization
@@ -105,15 +121,24 @@ void setup() {
   BLE.setDeviceName("Hoverwheel");
 
   // BLE
-  BLE.setAdvertisedService(pidService);
+  BLE.setAdvertisedService(controlService);
 
   // add the characteristic to the service
-  pidService.addCharacteristic(pChar);
-  pidService.addCharacteristic(iChar);
-  pidService.addCharacteristic(dChar);
+  controlService.addCharacteristic(pChar);
+  controlService.addCharacteristic(rpChar);
+  controlService.addCharacteristic(fkpChar);
+
+  statsService.addCharacteristic(stateChar);
+  statsService.addCharacteristic(angleChar);
+  statsService.addCharacteristic(pwmChar);
+  statsService.addCharacteristic(footpadAChar);
+  statsService.addCharacteristic(footpadBChar);
+  statsService.addCharacteristic(loopTimeChar);
+  statsService.addCharacteristic(targetChar);
 
   // add service
-  BLE.addService(pidService);
+  BLE.addService(controlService);
+  BLE.addService(statsService);
 
   // assign event handlers for connected, disconnected to peripheral
   BLE.setEventHandler(BLEConnected, blePeripheralConnectHandler);
@@ -121,13 +146,13 @@ void setup() {
 
   // assign event handlers for characteristic
   pChar.setEventHandler(BLEWritten, pidCharacteristicWritten);
-  iChar.setEventHandler(BLEWritten, pidCharacteristicWritten);
-  dChar.setEventHandler(BLEWritten, pidCharacteristicWritten);
+  rpChar.setEventHandler(BLEWritten, pidCharacteristicWritten);
+  fkpChar.setEventHandler(BLEWritten, pidCharacteristicWritten);
 
   // set an initial value for the characteristic
-  pChar.writeValue(KP);
-  iChar.writeValue(KI);
-  dChar.writeValue(KD);
+  pChar.writeValue(P_GAIN);
+  rpChar.writeValue(RP_GAIN);
+  fkpChar.writeValue(FILTER_KP);
   
   // start advertising
   BLE.advertise();
@@ -274,7 +299,7 @@ void loop() {
 
   // get PWM command
   pid.setpoint(targetAngle);
-  int pid_out = pid.compute(board_tilt);
+  int pid_out = calc_pid(board_tilt, gx);
 
   if (state != STATE_IDLE) {
     pwm_cmd = pid_out;
@@ -294,11 +319,24 @@ void loop() {
     FastLED.showColor(CRGB::Red);
   }
 
+  if (millis() - last_ble_update > 100) {
+    // update BLE
+    stateChar.writeValue(state);
+    angleChar.writeValue(board_tilt);
+    pwmChar.writeValue(pwm_cmd);
+    footpadAChar.writeValue(footpad);
+    footpadBChar.writeValue(footpad);
+    targetChar.writeValue(targetAngle);
+    loopTimeChar.writeValue(micros() - startMicros);
+
+
+    last_ble_update = millis();
+  }
 
   #ifndef DEBUG
     hoverboard.sendDifferentialPWM(pwm_cmd, pwm_cmd, PROTOCOL_SOM_NOACK);
   #else
-    Serial.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state) + ",FOOTPAD:" + String(footpad) + ",LOOP_TIME:" + String(micros() - startMicros));
+    // Serial.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state) + ",FOOTPAD:" + String(footpad) + ",LOOP_TIME:" + String(micros() - startMicros));
   #endif
 
   while (micros() - startMicros < 2000);
