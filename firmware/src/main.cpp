@@ -55,7 +55,6 @@ struct {
   float imu_offset;
 } control_params;
 
-int packets = 0;
 
 CRGB leds[NUM_LEDS];
 
@@ -452,13 +451,7 @@ void loop() {
     footpadBChar.writeValue(footpad_b);
     targetChar.writeValue(targetAngle);
     loopTimeChar.writeValue(micros() - startMicros);
-
-    int battery_voltage = hoverboard.getBatteryVoltage();
-    batteryChar.writeValue(packets);
-
-    // // update telemetry
-    hoverboard.requestRead(HoverboardAPI::Codes::sensHall, PROTOCOL_SOM_NOACK);
-    // hoverboard.requestRead(HoverboardAPI::Codes::sensElectrical, PROTOCOL_SOM_NOACK);
+    batteryChar.writeValue(0);
 
     last_ble_update = millis();
   }
