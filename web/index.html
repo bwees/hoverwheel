@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html data-bs-theme="dark">
 
 <head>
     <title>Hoverwheel Settings</title>
@@ -16,8 +16,21 @@
 
     <div class="container">
         <div class="row">
-            <form class="col-sm rounded p-2 bg-light border">
+            <form class="col-sm rounded p-2 bg-dark border">
                 <h2>Settings</h2>
+                <h6>PID Loop</h6>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3">Ride Angle</span>
+                    <input type="number" class="form-control" id="ra" aria-describedby="basic-addon3 basic-addon4"
+                        onchange="updateValue()">
+                    <span class="input-group-text input-group-append font-monospace" id="basic-addon3">deg</span>
+                </div>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3">IMU Offset</span>
+                    <input type="number" class="form-control" id="imuo" aria-describedby="basic-addon3 basic-addon4"
+                        onchange="updateValue()">
+                    <span class="input-group-text input-group-append font-monospace" id="basic-addon3">deg</span>
+                </div>
                 <div class="input-group mb-2">
                     <span class="input-group-text font-monospace" id="basic-addon3">Angle P</span>
                     <input type="number" class="form-control" id="p" aria-describedby="basic-addon3 basic-addon4"
@@ -33,9 +46,62 @@
                     <input type="number" class="form-control" id="fkp" aria-describedby="basic-addon3 basic-addon4"
                         onchange="updateValue()">
                 </div>
+                <h6>Footpads</h6>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3" class="width: 30px">A Threshold</span>
+                    <input type="number" class="form-control" id="fat" aria-describedby="basic-addon3 basic-addon4"
+                        onchange="updateValue()">
+                </div>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3" class="width: 30px">B Threshold</span>
+                    <input type="number" class="form-control" id="fbt" aria-describedby="basic-addon3 basic-addon4"
+                        onchange="updateValue()">
+                </div>
+                <h6>Pushback</h6>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3" class="width: 30px">Power Threshold</span>
+                    <input type="number" class="form-control" id="pthresh" aria-describedby="basic-addon3 basic-addon4"
+                        onchange="updateValue()">
+                    <span class="input-group-text input-group-append font-monospace" id="basic-addon3">%</span>
+
+                </div>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3" class="width: 30px">Activate Time</span>
+                    <input type="number" class="form-control" id="ptime" aria-describedby="basic-addon3 basic-addon4"
+                        onchange="updateValue()">
+                        <span class="input-group-text input-group-append font-monospace" id="basic-addon3">ms</span>
+
+                </div>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3" class="width: 30px">Speed</span>
+                    <input type="number" class="form-control" id="pspeed" aria-describedby="basic-addon3 basic-addon4"
+                        onchange="updateValue()">
+                    <span class="input-group-text input-group-append font-monospace" id="basic-addon3">deg/s</span>
+
+                </div>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3" class="width: 30px">Tiltback Angle</span>
+                    <input type="number" class="form-control" id="pangle" aria-describedby="basic-addon3 basic-addon4"
+                        onchange="updateValue()">
+                    <span class="input-group-text input-group-append font-monospace" id="basic-addon3">deg</span>
+                </div>
+                <h6>Step Up</h6>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3">Activation Angle</span>
+                    <input type="number" class="form-control" id="sua" aria-describedby="basic-addon3 basic-addon4"
+                        onchange="updateValue()">
+                    <span class="input-group-text input-group-append font-monospace" id="basic-addon3">deg</span>
+                </div>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3">Speed</span>
+                    <input type="number" class="form-control" id="sspeed" aria-describedby="basic-addon3 basic-addon4"
+                    onchange="updateValue()">
+                    <span class="input-group-text input-group-append font-monospace" id="basic-addon3">deg/s</span>
+                    
+                </div>
             </form>
 
-            <form class="col-sm offset-1 rounded p-2 bg-light border">
+            <form class="col-sm offset-1 rounded p-2 bg-dark border">
                 <h2>Telemetry</h2>
                 <div class="input-group mb-2">
                     <span class="input-group-text font-monospace" id="basic-addon3">State</span>
@@ -65,6 +131,11 @@
                     <span class="input-group-text font-monospace" id="basic-addon3" class="width: 30px">Loop</span>
                     <input type="number" class="form-control" id="loopTime" disabled aria-describedby="basic-addon3 basic-addon4">
                 </div>
+                <div class="input-group mb-2">
+                    <span class="input-group-text font-monospace" id="basic-addon3" class="width: 30px">Battery Voltage</span>
+                    <input type="number" class="form-control" id="battery" disabled aria-describedby="basic-addon3 basic-addon4">
+                </div>
+
 
             </form>
         </div>

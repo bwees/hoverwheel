@@ -3,7 +3,7 @@
 
 float mahony_q[4] = {1.0, 0.0, 0.0, 0.0};
 
-void Mahony_update(float ax, float ay, float az, float gx, float gy, float gz, float deltat) {
+void Mahony_update(float ax, float ay, float az, float gx, float gy, float gz, float deltat, float filter_kp, float filter_ki) {
   float recipNorm, accelNorm;
   float qa, qb, qc;
   float vx, vy, vz;
@@ -36,16 +36,16 @@ void Mahony_update(float ax, float ay, float az, float gx, float gy, float gz, f
     ez = (ax * vy - ay * vx);
 
     // Compute and apply to gyro term the integral feedback, if enabled
-    if (FILTER_KI > 0.0f) {
-      gx += FILTER_KI * ex * deltat;  // apply integral feedback
-      gy += FILTER_KI * ey * deltat;
-      gz += FILTER_KI * ez * deltat;
+    if (filter_ki > 0.0f) {
+      gx += filter_ki * ex * deltat;  // apply integral feedback
+      gy += filter_ki * ey * deltat;
+      gz += filter_ki * ez * deltat;
     }
 
     // Apply proportional feedback to gyro term
-    gx += FILTER_KP * ex;
-    gy += FILTER_KP * ey;
-    gz += FILTER_KP * ez;
+    gx += filter_kp * ex;
+    gy += filter_kp * ey;
+    gz += filter_kp * ez;
   }
 
   // Integrate rate of change of mahony_q, given by gyro term

@@ -36,9 +36,20 @@ function connect() {
             var controlService = await server.getPrimaryService("19b10000-e8f2-537e-4f6c-d104768a1215")
             var statsService = await server.getPrimaryService("19a10000-e8f2-537e-4f6c-d104768a1215")
 
+            // control params
             characheristics.pChar = await controlService.getCharacteristic("19b10001-e8f2-537e-4f6c-d104768a1214")
             characheristics.rpChar = await controlService.getCharacteristic("39b10001-e8f2-537e-4f6c-d104768a1214")
             characheristics.fkpChar = await controlService.getCharacteristic("a9b1cc01-e8f2-537e-4f6c-d104768a1214")
+            characheristics.footpadAThreshChar = await controlService.getCharacteristic("1d0f689a-8be0-11ee-b9d1-0242ac120002")
+            characheristics.footpadBThreshChar = await controlService.getCharacteristic("2d0f689a-8be0-11ee-b9d1-0242ac120002")
+            characheristics.pushbackThresholdChar = await controlService.getCharacteristic("3d0f689a-8be0-11ee-b9d1-0242ac120002")
+            characheristics.pushbackTimeChar = await controlService.getCharacteristic("4d0f689a-8be0-11ee-b9d1-0242ac120002")
+            characheristics.pushbackSpeedChar = await controlService.getCharacteristic("5d0f689a-8be0-11ee-b9d1-0242ac120002")
+            characheristics.pushbackAmountChar = await controlService.getCharacteristic("6d0f689a-8be0-11ee-b9d1-0242ac120002")
+            characheristics.rideAngleChar = await controlService.getCharacteristic("7d0f689a-8be0-11ee-b9d1-0242ac120002")
+            characheristics.stepUpAngleChar = await controlService.getCharacteristic("8d0f689a-8be0-11ee-b9d1-0242ac120002")
+            characheristics.stepUpSpeedChar = await controlService.getCharacteristic("9d0f689a-8be0-11ee-b9d1-0242ac120002")
+            characheristics.imuOffset = await controlService.getCharacteristic("0d0f689a-8be0-11ee-b9d1-0242ac120002")
 
             // stats
             characheristics.state = await statsService.getCharacteristic("49b10001-e8f2-537e-4f6c-d104768a1214")
@@ -48,6 +59,7 @@ function connect() {
             characheristics.footpadb = await statsService.getCharacteristic("79b10001-e8f2-537e-4f6c-d104768a1214")
             characheristics.loopTime = await statsService.getCharacteristic("89b10001-e8f2-537e-4f6c-d104768a1214")
             characheristics.target = await statsService.getCharacteristic("99b10001-e8f2-537e-4f6c-d104768a1214")
+            characheristics.battery = await statsService.getCharacteristic("a9b10001-e8f2-537e-4f6c-d104768a1214")
 
             // subscribe to the stats
             characheristics.state.startNotifications().then((char) => {
@@ -108,6 +120,13 @@ function connect() {
                 })
             })
 
+            characheristics.battery.startNotifications().then((char) => {
+                char.addEventListener('characteristicvaluechanged', (event) => {
+                    document.getElementById("battery").value = event.target.value.getFloat32(0, true)
+                })
+            })
+
+
             characheristics.loopTime.startNotifications().then((char) => {
                 char.addEventListener('characteristicvaluechanged', (event) => {
                     document.getElementById("loopTime").value = event.target.value.getInt32(0, true)
@@ -134,6 +153,37 @@ function connect() {
                 console.log(value.getFloat32(0, true))
                 document.getElementById("fkp").value = value.getFloat32(0, true)
             })
+            characheristics.footpadAThreshChar.readValue().then((value) => {
+                document.getElementById("fat").value = value.getInt32(0, true)
+            })
+            characheristics.footpadBThreshChar.readValue().then((value) => {
+                document.getElementById("fbt").value = value.getInt32(0, true)
+            })
+            characheristics.pushbackThresholdChar.readValue().then((value) => {
+                document.getElementById("pthresh").value = Math.round(value.getFloat32(0, true) * 100)
+            })
+            characheristics.pushbackTimeChar.readValue().then((value) => {
+                document.getElementById("ptime").value = value.getInt32(0, true)
+            })
+            characheristics.pushbackSpeedChar.readValue().then((value) => {
+                document.getElementById("pspeed").value = value.getFloat32(0, true)
+            })
+            characheristics.pushbackAmountChar.readValue().then((value) => {
+                document.getElementById("pangle").value = value.getFloat32(0, true)
+            })
+            characheristics.rideAngleChar.readValue().then((value) => {
+                document.getElementById("ra").value = value.getFloat32(0, true)
+            })
+            characheristics.stepUpAngleChar.readValue().then((value) => {
+                document.getElementById("sua").value = value.getFloat32(0, true)
+            })
+            characheristics.stepUpSpeedChar.readValue().then((value) => {
+                document.getElementById("sspeed").value = value.getFloat32(0, true)
+            })
+            characheristics.imuOffset.readValue().then((value) => {
+                document.getElementById("imuo").value = value.getFloat32(0, true)
+            })
+
         })
 
         .catch((error) => {
@@ -142,23 +192,62 @@ function connect() {
 }
 
 async function updateValue() {
-    var p = document.getElementById("p").value
-    var rp = document.getElementById("rp").value
-    var fkp = document.getElementById("fkp").value
 
     var data = new Uint32Array(1)
 
     // int32 array for p
-    data[0] = p
+    data[0] = document.getElementById("p").value
     await characheristics.pChar.writeValue(data)
 
     // int32 array for rp
-    data[0] = rp
+    data[0] = document.getElementById("rp").value
     await characheristics.rpChar.writeValue(data)
+    console.log("rateP: " + document.getElementById("rp").value)
 
-    // int32 array for rp
-    data[0] = fkp
+    // int32 array for footpadAThresh
+    data[0] = document.getElementById("fat").value
+    await characheristics.footpadAThreshChar.writeValue(data)
+
+    // int32 array for footpadBThresh
+    data[0] = document.getElementById("fbt").value
+    await characheristics.footpadBThreshChar.writeValue(data)
+
+    // int32 array for pushbackTime
+    data[0] = document.getElementById("ptime").value
+    await characheristics.pushbackTimeChar.writeValue(data)
+
+    // float32 array for fkp
+    data = new Float32Array(1)
+    data[0] = document.getElementById("fkp").value
     await characheristics.fkpChar.writeValue(data)
+
+    // float32 array for pushbackThreshold
+    data[0] = document.getElementById("pthresh").value / 100
+    await characheristics.pushbackThresholdChar.writeValue(data)
+
+    // float32 array for pushbackSpeed
+    data[0] = document.getElementById("pspeed").value
+    await characheristics.pushbackSpeedChar.writeValue(data)
+
+    // float32 array for pushbackAmount
+    data[0] = document.getElementById("pangle").value
+    await characheristics.pushbackAmountChar.writeValue(data)
+
+    // float32 array for rideAngle
+    data[0] = document.getElementById("ra").value
+    await characheristics.rideAngleChar.writeValue(data)
+
+    // float32 array for stepUpAngle
+    data[0] = document.getElementById("sua").value
+    await characheristics.stepUpAngleChar.writeValue(data)
+
+    // float32 array for stepUpSpeed
+    data[0] = document.getElementById("sspeed").value
+    await characheristics.stepUpSpeedChar.writeValue(data)
+
+    // float32 array for imuOffset
+    data[0] = document.getElementById("imuo").value
+    await characheristics.imuOffset.writeValue(data)
 }
 
 function configureCharts() {
@@ -236,7 +325,7 @@ function configureCharts() {
             scales: {
               y: { // defining min and max so hiding the dataset does not change scale range
                 min: 500,
-                max: 1500
+                max: 2000
               },
               x: {
                 ticks: {
