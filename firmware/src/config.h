@@ -11,3 +11,5 @@
 
 // LEDS
 #define NUM_LEDS 8
+
+#define HoverSerial Serial1

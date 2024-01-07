@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <HoverboardAPI.h>
 #include <Wire.h>
 #include <MPU6050.h>
 #include <FastLED.h>
@@ -7,13 +6,10 @@
 #include <Preferences.h>
 #include "config.h"
 #include "mahony.h"
+#include "hoverboard_esc.h"
 
-int serialWrapper(unsigned char *data, int len) {
-  return (int) Serial.write(data,len);
-}
-
-HoverboardAPI hoverboard = HoverboardAPI(serialWrapper);
 MPU6050 mpu;
+Hoverboard esc;
 
 //macro that returns +1/-1 depending on the sign of the argument
 #define SIGN(x) ((x > 0) - (x < 0))
@@ -37,6 +33,7 @@ float step_up_start = 0;
 int filter_last_update = micros();
 int last_ble_update = millis();
 int last_param_update = -1;
+int packets = 0;
 
 // Control loop parameters
 struct {
@@ -77,7 +74,6 @@ BLEFloatCharacteristic stepUpAngleChar("8d0f689a-8be0-11ee-b9d1-0242ac120002", B
 BLEFloatCharacteristic stepUpSpeedChar("9d0f689a-8be0-11ee-b9d1-0242ac120002", BLERead | BLEWrite);
 BLEFloatCharacteristic imuOffsetChar("0d0f689a-8be0-11ee-b9d1-0242ac120002", BLERead | BLEWrite);
 
-
 BLEIntCharacteristic stateChar("49b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
 BLEFloatCharacteristic angleChar("59B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
 BLEIntCharacteristic pwmChar("69b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
@@ -86,17 +82,18 @@ BLEIntCharacteristic footpadBChar("79b10001-e8f2-537e-4f6c-d104768a1214", BLERea
 BLEIntCharacteristic loopTimeChar("89b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
 BLEFloatCharacteristic targetChar("99b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
 BLEFloatCharacteristic batteryChar("a9b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
+BLEFloatCharacteristic boardTempChar("b9b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
 
 void blePeripheralConnectHandler(BLEDevice central) {
   // central connected event handler
-  Serial.print("Connected event, central: ");
-  Serial.println(central.address());
+  // Serial.print("Connected event, central: ");
+  // Serial.println(central.address());
 }
 
 void blePeripheralDisconnectHandler(BLEDevice central) {
   // central disconnected event handler
-  Serial.print("Disconnected event, central: ");
-  Serial.println(central.address());
+  // Serial.print("Disconnected event, central: ");
+  // Serial.println(central.address());
 }
 
 int calc_pid(float currentAngle, float rotationRate) {
@@ -192,7 +189,8 @@ void charachteristicWritten(BLEDevice central, BLECharacteristic characteristic)
 void setup() {
   Wire.begin(3, 2);
   Wire.setClock(400000);
-  Serial.begin(115200);
+
+  Serial1.begin(115200, SERIAL_8N1, 10, 9); // redefine RX pin 
 
   mpu.initialize();
   mpu.setDLPFMode(MPU6050_IMU::MPU6050_DLPF_BW_98); // 98Hz
@@ -211,10 +209,12 @@ void setup() {
 
   // begin initialization
   if (!BLE.begin()) {
-    Serial.println("starting Bluetooth® Low Energy module failed!");
+    // Serial.println("starting Bluetooth® Low Energy module failed!");
 
     while (1);
   }
+
+  gpio_pulldown_en(GPIO_NUM_20);
 
   BLE.setLocalName("Hoverwheel");
   BLE.setDeviceName("Hoverwheel");
@@ -279,6 +279,7 @@ void setup() {
 }
 
 void loop() {
+
   // Loop Performance Timer
   long startMicros = micros();
   BLE.poll();
@@ -319,7 +320,15 @@ void loop() {
   board_tilt += control_params.imu_offset;
   board_tilt *= -1; // flip imu
 
-  // int motor_speed = hoverboard.getSpeed0_kmh();
+  ////////////// ESC TELEMETRY ////////////// 
+
+  if (Serial1.available() > 0) {
+    packets++;
+  }
+  esc.receiveTelemetry();
+
+  int battery = esc.feedback.batVoltage;
+  int boardTemp = esc.feedback.boardTemp;
 
   //////////////// FOOTPADS //////////////// 
   int footpad_a = analogRead(FOOTPAD_A_PIN);
@@ -408,15 +417,20 @@ void loop() {
   }
   
   // handle pushback beeps
-  if (state == STATE_PUSHBACK) {
-    int time_since_beep = millis() - last_beep;
+  int time_since_beep = millis() - last_beep;
 
-    if (time_since_beep > 250) {
+  if (time_since_beep > 100) {
+    esc.buzzerFreqCmd = 0;
+  }
+
+  if (state == STATE_PUSHBACK) {
+    if (time_since_beep > 750) {
       last_beep = millis();
-      hoverboard.sendBuzzer(4, 0, 50, PROTOCOL_SOM_NOACK);
+      esc.buzzerFreqCmd = 2 ;
     }
   }
 
+      // esc.buzzerFreqCmd = 0;
   ///////////// LEVELING LOGIC /////////////
 
   // get PWM command
@@ -428,6 +442,7 @@ void loop() {
     // if the board is idle, set the PWM to 0
     pwm_cmd = 0;
   }
+
 
 
   if (state == STATE_IDLE) {
@@ -451,7 +466,8 @@ void loop() {
     footpadBChar.writeValue(footpad_b);
     targetChar.writeValue(targetAngle);
     loopTimeChar.writeValue(micros() - startMicros);
-    batteryChar.writeValue(0);
+    batteryChar.writeValue(battery);
+    // boardTempChar.writeValue((float) packets);
 
     last_ble_update = millis();
   }
@@ -462,11 +478,9 @@ void loop() {
     last_param_update = -1;
   }
 
-  hoverboard.sendDifferentialPWM(pwm_cmd, pwm_cmd, PROTOCOL_SOM_NOACK);
-  // #ifndef DEBUG
-  // #else
-  //   // Serial.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state) + ",FOOTPAD:" + String(footpad) + ",LOOP_TIME:" + String(micros() - startMicros));
-  // #endif
+  // update esc data
+  esc.speedCmd = pwm_cmd;
+  esc.sendCommand();
 
   while (micros() - startMicros < 2000);
 }
