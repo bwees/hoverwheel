@@ -8,7 +8,7 @@
 #include "mahony.h"
 #include "hoverboard_esc.h"
 
-MPU6050 mpu;
+MPU6050 mpu(0x69);
 Hoverboard esc;
 
 //macro that returns +1/-1 depending on the sign of the argument
@@ -34,6 +34,10 @@ int filter_last_update = micros();
 int last_ble_update = millis();
 int last_param_update = -1;
 int packets = 0;
+
+//footpad
+int footpad_a = 0;
+int footpad_b = 0;
 
 // Control loop parameters
 struct {
@@ -94,6 +98,24 @@ void blePeripheralDisconnectHandler(BLEDevice central) {
   // central disconnected event handler
   // Serial.print("Disconnected event, central: ");
   // Serial.println(central.address());
+}
+
+void handleBLE(void* params) {
+  while (true) {
+    BLE.poll();
+    delay(2);
+  }
+}
+
+void handleFootpads(void* params) {
+  while (true) {
+    footpad_a = analogRead(FOOTPAD_A_PIN);
+    footpad_b = analogRead(FOOTPAD_B_PIN);
+    #ifdef SINGLE_FOOTPAD
+    footpad_a = footpad_b;
+    #endif
+    delay(2);
+  }
 }
 
 int calc_pid(float currentAngle, float rotationRate) {
@@ -187,25 +209,24 @@ void charachteristicWritten(BLEDevice central, BLECharacteristic characteristic)
 }
 
 void setup() {
-  Wire.begin(3, 2);
+  Wire.begin(32, 33);
   Wire.setClock(400000);
 
-  Serial1.begin(115200, SERIAL_8N1, 10, 9); // redefine RX pin 
+  Serial2.begin(115200, SERIAL_8N1); // redefine RX pin 
 
   mpu.initialize();
   mpu.setDLPFMode(MPU6050_IMU::MPU6050_DLPF_BW_98); // 98Hz
 
-  mpu.setXGyroOffset(145);
-  mpu.setYGyroOffset(32);
-  mpu.setZGyroOffset(-33);
-  mpu.setXAccelOffset(-5558);
-  mpu.setYAccelOffset(-2118);
-  mpu.setZAccelOffset(1218);
-
+  mpu.setXAccelOffset(823);
+  mpu.setYAccelOffset(2446);
+  mpu.setZAccelOffset(1122);
+  mpu.setXGyroOffset(-12);
+  mpu.setYGyroOffset(15);
+  mpu.setZGyroOffset(-27);
 
   pinMode(FOOTPAD_A_PIN, INPUT);
   pinMode(FOOTPAD_B_PIN, INPUT);
-  // FastLED.addLeds<WS2812, 8, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
+  FastLED.addLeds<WS2812, LED_FRONT_PIN, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
 
   // begin initialization
   if (!BLE.begin()) {
@@ -275,14 +296,16 @@ void setup() {
   stepUpSpeedChar.setEventHandler(BLEWritten, charachteristicWritten);
   imuOffsetChar.setEventHandler(BLEWritten, charachteristicWritten);
 
+  // start BLE task
+  xTaskCreatePinnedToCore(handleBLE, "BLE", 10000, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(handleFootpads, "Footpads", 10000, NULL, 1, NULL, 1);
+
   setupPreferences();
 }
 
 void loop() {
-
   // Loop Performance Timer
   long startMicros = micros();
-  BLE.poll();
 
   int now = micros();
   // Serial.println(now - filter_last_update);
@@ -314,26 +337,33 @@ void loop() {
 
   // float roll  = atan2((q[0] * q[1] + q[2] * q[3]), 0.5 - (q[1] * q[1] + q[2] * q[2]));
   // float pitch = asin(2.0 * (q[0] * q[2] - q[1] * q[3]));
+
   float board_tilt = atan2((mahony_q[0] * mahony_q[1] + mahony_q[2] * mahony_q[3]), 0.5 - (mahony_q[1] * mahony_q[1] + mahony_q[2] * mahony_q[2]));
   board_tilt *= 180.0/PI;
+
+  // handle sensor being upside down and flipping between 180 and -180
+  if (board_tilt > 90) {
+    board_tilt = 180 - board_tilt;
+  } else if (board_tilt < -90) {
+    board_tilt = -180 - board_tilt;
+  }
+
   board_tilt += control_params.ride_angle;
   board_tilt += control_params.imu_offset;
   board_tilt *= -1; // flip imu
 
+
   ////////////// ESC TELEMETRY ////////////// 
 
-  if (Serial1.available() > 0) {
-    packets++;
-  }
+  // if (Serial1.available() > 0) {
+  //   packets++;
+  // }
   esc.receiveTelemetry();
 
   int battery = esc.feedback.batVoltage;
   int boardTemp = esc.feedback.boardTemp;
 
   //////////////// FOOTPADS //////////////// 
-  int footpad_a = analogRead(FOOTPAD_A_PIN);
-  int footpad_b = analogRead(FOOTPAD_B_PIN);
-  footpad_a = footpad_b;
   int footpad = (footpad_a > control_params.footpad_a_thresh) + (footpad_b > control_params.footpad_a_thresh);
 
 
@@ -466,8 +496,8 @@ void loop() {
     footpadBChar.writeValue(footpad_b);
     targetChar.writeValue(targetAngle);
     loopTimeChar.writeValue(micros() - startMicros);
-    batteryChar.writeValue(battery);
-    // boardTempChar.writeValue((float) packets);
+    batteryChar.writeValue(battery/100.0);
+    boardTempChar.writeValue(boardTemp);
 
     last_ble_update = millis();
   }
