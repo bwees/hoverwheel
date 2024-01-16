@@ -215,7 +215,7 @@ void setup() {
   Serial2.begin(115200, SERIAL_8N1); // redefine RX pin 
 
   mpu.initialize();
-  mpu.setDLPFMode(MPU6050_IMU::MPU6050_DLPF_BW_98); // 98Hz
+  mpu.setDLPFMode(MPU6050_DLPF_BW_98); // 98Hz
 
   mpu.setXAccelOffset(823);
   mpu.setYAccelOffset(2446);
