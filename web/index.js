@@ -19,7 +19,7 @@ function connect() {
 
     navigator.bluetooth
         .requestDevice({
-            filters: [{ name: "Hoverwheel" }],
+            filters: [{ namePrefix: "Hoverwheel" }],
             optionalServices: ["19b10000-e8f2-537e-4f6c-d104768a1215", "19a10000-e8f2-537e-4f6c-d104768a1215"]
         })
         .then((device) => {
