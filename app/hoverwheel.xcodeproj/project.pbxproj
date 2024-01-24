@@ -1,0 +1,836 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		F04473BE2B59A70B007573C7 /* BLEData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04473BD2B59A70B007573C7 /* BLEData.swift */; };
+		F04473C02B59AF4C007573C7 /* GATTDefinitions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04473BF2B59AF4C007573C7 /* GATTDefinitions.swift */; };
+		F05A682F2B58AC7000CE62E3 /* ConnectBTModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = F05A682E2B58AC7000CE62E3 /* ConnectBTModal.swift */; };
+		F05A68312B58AC7100CE62E3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F05A68302B58AC7100CE62E3 /* Assets.xcassets */; };
+		F05A68342B58AC7100CE62E3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F05A68332B58AC7100CE62E3 /* Preview Assets.xcassets */; };
+		F05A683B2B58ACB500CE62E3 /* BluetoothManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F05A683A2B58ACB500CE62E3 /* BluetoothManager.swift */; };
+		F07559392B5A2C0A00705C2D /* ExtendedRuntimeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F07559382B5A2C0A00705C2D /* ExtendedRuntimeManager.swift */; };
+		F075593B2B5A30C200705C2D /* ConnectBTModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = F05A682E2B58AC7000CE62E3 /* ConnectBTModal.swift */; };
+		F075593D2B5A350600705C2D /* InterfaceTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = F075593C2B5A350600705C2D /* InterfaceTabs.swift */; };
+		F07559492B5A45D400705C2D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F07559482B5A45D400705C2D /* WidgetKit.framework */; };
+		F075594B2B5A45D400705C2D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F075594A2B5A45D400705C2D /* SwiftUI.framework */; };
+		F075594E2B5A45D400705C2D /* Hoverwheel_Complication.swift in Sources */ = {isa = PBXBuildFile; fileRef = F075594D2B5A45D400705C2D /* Hoverwheel_Complication.swift */; };
+		F07559502B5A45D400705C2D /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F075594F2B5A45D400705C2D /* AppIntent.swift */; };
+		F07559522B5A45D500705C2D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F07559512B5A45D500705C2D /* Assets.xcassets */; };
+		F07559562B5A45D500705C2D /* Hoverwheel ComplicationExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F07559462B5A45D400705C2D /* Hoverwheel ComplicationExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F09911FE2B59C49900F55379 /* LabeledBoolInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09911FD2B59C49900F55379 /* LabeledBoolInput.swift */; };
+		F09912022B59D21700F55379 /* CompensatedKP.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09912012B59D21700F55379 /* CompensatedKP.swift */; };
+		F09912052B59DF8F00F55379 /* GraphTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09912042B59DF8F00F55379 /* GraphTabs.swift */; };
+		F0B21FAE2B5A1CCD00676099 /* hoverwheel_watchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B21FAD2B5A1CCD00676099 /* hoverwheel_watchApp.swift */; };
+		F0B21FB02B5A1CCD00676099 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B21FAF2B5A1CCD00676099 /* ContentView.swift */; };
+		F0B21FB22B5A1CCF00676099 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0B21FB12B5A1CCF00676099 /* Assets.xcassets */; };
+		F0B21FB52B5A1CCF00676099 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0B21FB42B5A1CCF00676099 /* Preview Assets.xcassets */; };
+		F0B21FB82B5A1CCF00676099 /* Hoverwheel Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = F0B21FAB2B5A1CCD00676099 /* Hoverwheel Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F0B21FBD2B5A1D6F00676099 /* BluetoothManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F05A683A2B58ACB500CE62E3 /* BluetoothManager.swift */; };
+		F0B21FBE2B5A1D7200676099 /* GATTDefinitions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04473BF2B59AF4C007573C7 /* GATTDefinitions.swift */; };
+		F0B21FBF2B5A1D7200676099 /* BLEData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04473BD2B59A70B007573C7 /* BLEData.swift */; };
+		F0F32E912B58C166002098D9 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F32E902B58C166002098D9 /* App.swift */; };
+		F0F32E932B58C1E0002098D9 /* Main.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F32E922B58C1E0002098D9 /* Main.swift */; };
+		F0F32E952B58C22E002098D9 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F32E942B58C22E002098D9 /* Settings.swift */; };
+		F0F32E972B58C704002098D9 /* Ride.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F32E962B58C704002098D9 /* Ride.swift */; };
+		F0F32E992B58CB27002098D9 /* LabeledFloatInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F32E982B58CB27002098D9 /* LabeledFloatInput.swift */; };
+		F0F32E9B2B58CE23002098D9 /* LabeledIntInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F32E9A2B58CE23002098D9 /* LabeledIntInput.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F07559542B5A45D500705C2D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F05A68212B58AC7000CE62E3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F07559452B5A45D400705C2D;
+			remoteInfo = "Hoverwheel ComplicationExtension";
+		};
+		F0B21FB62B5A1CCF00676099 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F05A68212B58AC7000CE62E3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F0B21FAA2B5A1CCD00676099;
+			remoteInfo = "hoverwheel-watch Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F075595A2B5A45D500705C2D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				F07559562B5A45D500705C2D /* Hoverwheel ComplicationExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F0B21FBC2B5A1CCF00676099 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				F0B21FB82B5A1CCF00676099 /* Hoverwheel Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		F04473BD2B59A70B007573C7 /* BLEData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEData.swift; sourceTree = "<group>"; };
+		F04473BF2B59AF4C007573C7 /* GATTDefinitions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GATTDefinitions.swift; sourceTree = "<group>"; };
+		F05A68292B58AC7000CE62E3 /* Hoverwheel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hoverwheel.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F05A682E2B58AC7000CE62E3 /* ConnectBTModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectBTModal.swift; sourceTree = "<group>"; };
+		F05A68302B58AC7100CE62E3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F05A68332B58AC7100CE62E3 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		F05A683A2B58ACB500CE62E3 /* BluetoothManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothManager.swift; sourceTree = "<group>"; };
+		F07559382B5A2C0A00705C2D /* ExtendedRuntimeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtendedRuntimeManager.swift; sourceTree = "<group>"; };
+		F075593C2B5A350600705C2D /* InterfaceTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceTabs.swift; sourceTree = "<group>"; };
+		F07559462B5A45D400705C2D /* Hoverwheel ComplicationExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Hoverwheel ComplicationExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F07559482B5A45D400705C2D /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		F075594A2B5A45D400705C2D /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		F075594D2B5A45D400705C2D /* Hoverwheel_Complication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hoverwheel_Complication.swift; sourceTree = "<group>"; };
+		F075594F2B5A45D400705C2D /* AppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntent.swift; sourceTree = "<group>"; };
+		F07559512B5A45D500705C2D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F07559532B5A45D500705C2D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F09911FD2B59C49900F55379 /* LabeledBoolInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabeledBoolInput.swift; sourceTree = "<group>"; };
+		F09912012B59D21700F55379 /* CompensatedKP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompensatedKP.swift; sourceTree = "<group>"; };
+		F09912042B59DF8F00F55379 /* GraphTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphTabs.swift; sourceTree = "<group>"; };
+		F0B21FAB2B5A1CCD00676099 /* Hoverwheel Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hoverwheel Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F0B21FAD2B5A1CCD00676099 /* hoverwheel_watchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = hoverwheel_watchApp.swift; sourceTree = "<group>"; };
+		F0B21FAF2B5A1CCD00676099 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		F0B21FB12B5A1CCF00676099 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F0B21FB42B5A1CCF00676099 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		F0F32E902B58C166002098D9 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		F0F32E922B58C1E0002098D9 /* Main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Main.swift; sourceTree = "<group>"; };
+		F0F32E942B58C22E002098D9 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		F0F32E962B58C704002098D9 /* Ride.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ride.swift; sourceTree = "<group>"; };
+		F0F32E982B58CB27002098D9 /* LabeledFloatInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabeledFloatInput.swift; sourceTree = "<group>"; };
+		F0F32E9A2B58CE23002098D9 /* LabeledIntInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabeledIntInput.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F05A68262B58AC7000CE62E3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F07559432B5A45D400705C2D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F075594B2B5A45D400705C2D /* SwiftUI.framework in Frameworks */,
+				F07559492B5A45D400705C2D /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F0B21FA82B5A1CCD00676099 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		F04473BC2B598556007573C7 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				F075593F2B5A3AF300705C2D /* ui */,
+				F075593E2B5A3AE600705C2D /* bluetooth */,
+			);
+			path = shared;
+			sourceTree = "<group>";
+		};
+		F05A68202B58AC7000CE62E3 = {
+			isa = PBXGroup;
+			children = (
+				F04473BC2B598556007573C7 /* shared */,
+				F05A682B2B58AC7000CE62E3 /* hoverwheel */,
+				F0B21FAC2B5A1CCD00676099 /* Hoverwheel Watch App */,
+				F075594C2B5A45D400705C2D /* Hoverwheel Complication */,
+				F07559472B5A45D400705C2D /* Frameworks */,
+				F05A682A2B58AC7000CE62E3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F05A682A2B58AC7000CE62E3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F05A68292B58AC7000CE62E3 /* Hoverwheel.app */,
+				F0B21FAB2B5A1CCD00676099 /* Hoverwheel Watch App.app */,
+				F07559462B5A45D400705C2D /* Hoverwheel ComplicationExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F05A682B2B58AC7000CE62E3 /* hoverwheel */ = {
+			isa = PBXGroup;
+			children = (
+				F09912032B59DE8F00F55379 /* dataViews */,
+				F0F32E8F2B58C13D002098D9 /* ui */,
+				F0F32E902B58C166002098D9 /* App.swift */,
+				F05A68302B58AC7100CE62E3 /* Assets.xcassets */,
+				F05A68322B58AC7100CE62E3 /* Preview Content */,
+			);
+			path = hoverwheel;
+			sourceTree = "<group>";
+		};
+		F05A68322B58AC7100CE62E3 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				F05A68332B58AC7100CE62E3 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		F075593E2B5A3AE600705C2D /* bluetooth */ = {
+			isa = PBXGroup;
+			children = (
+				F05A683A2B58ACB500CE62E3 /* BluetoothManager.swift */,
+				F04473BD2B59A70B007573C7 /* BLEData.swift */,
+				F04473BF2B59AF4C007573C7 /* GATTDefinitions.swift */,
+			);
+			path = bluetooth;
+			sourceTree = "<group>";
+		};
+		F075593F2B5A3AF300705C2D /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				F05A682E2B58AC7000CE62E3 /* ConnectBTModal.swift */,
+			);
+			path = ui;
+			sourceTree = "<group>";
+		};
+		F07559472B5A45D400705C2D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F07559482B5A45D400705C2D /* WidgetKit.framework */,
+				F075594A2B5A45D400705C2D /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		F075594C2B5A45D400705C2D /* Hoverwheel Complication */ = {
+			isa = PBXGroup;
+			children = (
+				F075594D2B5A45D400705C2D /* Hoverwheel_Complication.swift */,
+				F075594F2B5A45D400705C2D /* AppIntent.swift */,
+				F07559512B5A45D500705C2D /* Assets.xcassets */,
+				F07559532B5A45D500705C2D /* Info.plist */,
+			);
+			path = "Hoverwheel Complication";
+			sourceTree = "<group>";
+		};
+		F09912032B59DE8F00F55379 /* dataViews */ = {
+			isa = PBXGroup;
+			children = (
+				F09912012B59D21700F55379 /* CompensatedKP.swift */,
+				F09912042B59DF8F00F55379 /* GraphTabs.swift */,
+			);
+			path = dataViews;
+			sourceTree = "<group>";
+		};
+		F0B21FAC2B5A1CCD00676099 /* Hoverwheel Watch App */ = {
+			isa = PBXGroup;
+			children = (
+				F07559382B5A2C0A00705C2D /* ExtendedRuntimeManager.swift */,
+				F0B21FAD2B5A1CCD00676099 /* hoverwheel_watchApp.swift */,
+				F0B21FAF2B5A1CCD00676099 /* ContentView.swift */,
+				F075593C2B5A350600705C2D /* InterfaceTabs.swift */,
+				F0B21FB12B5A1CCF00676099 /* Assets.xcassets */,
+				F0B21FB32B5A1CCF00676099 /* Preview Content */,
+			);
+			path = "Hoverwheel Watch App";
+			sourceTree = "<group>";
+		};
+		F0B21FB32B5A1CCF00676099 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				F0B21FB42B5A1CCF00676099 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		F0BDAA452B596FD400793226 /* inputs */ = {
+			isa = PBXGroup;
+			children = (
+				F0F32E9A2B58CE23002098D9 /* LabeledIntInput.swift */,
+				F09911FD2B59C49900F55379 /* LabeledBoolInput.swift */,
+				F0F32E982B58CB27002098D9 /* LabeledFloatInput.swift */,
+			);
+			path = inputs;
+			sourceTree = "<group>";
+		};
+		F0F32E8F2B58C13D002098D9 /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				F0BDAA452B596FD400793226 /* inputs */,
+				F0F32E922B58C1E0002098D9 /* Main.swift */,
+				F0F32E942B58C22E002098D9 /* Settings.swift */,
+				F0F32E962B58C704002098D9 /* Ride.swift */,
+			);
+			path = ui;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F05A68282B58AC7000CE62E3 /* Hoverwheel */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F05A68372B58AC7100CE62E3 /* Build configuration list for PBXNativeTarget "Hoverwheel" */;
+			buildPhases = (
+				F05A68252B58AC7000CE62E3 /* Sources */,
+				F05A68262B58AC7000CE62E3 /* Frameworks */,
+				F05A68272B58AC7000CE62E3 /* Resources */,
+				F0B21FBC2B5A1CCF00676099 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F0B21FB72B5A1CCF00676099 /* PBXTargetDependency */,
+			);
+			name = Hoverwheel;
+			productName = hoverwheel;
+			productReference = F05A68292B58AC7000CE62E3 /* Hoverwheel.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F07559452B5A45D400705C2D /* Hoverwheel ComplicationExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F07559572B5A45D500705C2D /* Build configuration list for PBXNativeTarget "Hoverwheel ComplicationExtension" */;
+			buildPhases = (
+				F07559422B5A45D400705C2D /* Sources */,
+				F07559432B5A45D400705C2D /* Frameworks */,
+				F07559442B5A45D400705C2D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Hoverwheel ComplicationExtension";
+			productName = "Hoverwheel ComplicationExtension";
+			productReference = F07559462B5A45D400705C2D /* Hoverwheel ComplicationExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		F0B21FAA2B5A1CCD00676099 /* Hoverwheel Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F0B21FB92B5A1CCF00676099 /* Build configuration list for PBXNativeTarget "Hoverwheel Watch App" */;
+			buildPhases = (
+				F0B21FA72B5A1CCD00676099 /* Sources */,
+				F0B21FA82B5A1CCD00676099 /* Frameworks */,
+				F0B21FA92B5A1CCD00676099 /* Resources */,
+				F075595A2B5A45D500705C2D /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F07559552B5A45D500705C2D /* PBXTargetDependency */,
+			);
+			name = "Hoverwheel Watch App";
+			productName = "hoverwheel-watch Watch App";
+			productReference = F0B21FAB2B5A1CCD00676099 /* Hoverwheel Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F05A68212B58AC7000CE62E3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1520;
+				LastUpgradeCheck = 1520;
+				TargetAttributes = {
+					F05A68282B58AC7000CE62E3 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+					F07559452B5A45D400705C2D = {
+						CreatedOnToolsVersion = 15.2;
+					};
+					F0B21FAA2B5A1CCD00676099 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+				};
+			};
+			buildConfigurationList = F05A68242B58AC7000CE62E3 /* Build configuration list for PBXProject "hoverwheel" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = F05A68202B58AC7000CE62E3;
+			productRefGroup = F05A682A2B58AC7000CE62E3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F05A68282B58AC7000CE62E3 /* Hoverwheel */,
+				F0B21FAA2B5A1CCD00676099 /* Hoverwheel Watch App */,
+				F07559452B5A45D400705C2D /* Hoverwheel ComplicationExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F05A68272B58AC7000CE62E3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F05A68342B58AC7100CE62E3 /* Preview Assets.xcassets in Resources */,
+				F05A68312B58AC7100CE62E3 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F07559442B5A45D400705C2D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F07559522B5A45D500705C2D /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F0B21FA92B5A1CCD00676099 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F0B21FB52B5A1CCF00676099 /* Preview Assets.xcassets in Resources */,
+				F0B21FB22B5A1CCF00676099 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F05A68252B58AC7000CE62E3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F05A682F2B58AC7000CE62E3 /* ConnectBTModal.swift in Sources */,
+				F05A683B2B58ACB500CE62E3 /* BluetoothManager.swift in Sources */,
+				F09912022B59D21700F55379 /* CompensatedKP.swift in Sources */,
+				F0F32E932B58C1E0002098D9 /* Main.swift in Sources */,
+				F09912052B59DF8F00F55379 /* GraphTabs.swift in Sources */,
+				F0F32E912B58C166002098D9 /* App.swift in Sources */,
+				F04473C02B59AF4C007573C7 /* GATTDefinitions.swift in Sources */,
+				F0F32E9B2B58CE23002098D9 /* LabeledIntInput.swift in Sources */,
+				F0F32E992B58CB27002098D9 /* LabeledFloatInput.swift in Sources */,
+				F0F32E952B58C22E002098D9 /* Settings.swift in Sources */,
+				F04473BE2B59A70B007573C7 /* BLEData.swift in Sources */,
+				F0F32E972B58C704002098D9 /* Ride.swift in Sources */,
+				F09911FE2B59C49900F55379 /* LabeledBoolInput.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F07559422B5A45D400705C2D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F075594E2B5A45D400705C2D /* Hoverwheel_Complication.swift in Sources */,
+				F07559502B5A45D400705C2D /* AppIntent.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F0B21FA72B5A1CCD00676099 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F0B21FBE2B5A1D7200676099 /* GATTDefinitions.swift in Sources */,
+				F075593D2B5A350600705C2D /* InterfaceTabs.swift in Sources */,
+				F075593B2B5A30C200705C2D /* ConnectBTModal.swift in Sources */,
+				F0B21FB02B5A1CCD00676099 /* ContentView.swift in Sources */,
+				F0B21FBF2B5A1D7200676099 /* BLEData.swift in Sources */,
+				F07559392B5A2C0A00705C2D /* ExtendedRuntimeManager.swift in Sources */,
+				F0B21FBD2B5A1D6F00676099 /* BluetoothManager.swift in Sources */,
+				F0B21FAE2B5A1CCD00676099 /* hoverwheel_watchApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F07559552B5A45D500705C2D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F07559452B5A45D400705C2D /* Hoverwheel ComplicationExtension */;
+			targetProxy = F07559542B5A45D500705C2D /* PBXContainerItemProxy */;
+		};
+		F0B21FB72B5A1CCF00676099 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F0B21FAA2B5A1CCD00676099 /* Hoverwheel Watch App */;
+			targetProxy = F0B21FB62B5A1CCF00676099 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		F05A68352B58AC7100CE62E3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F05A68362B58AC7100CE62E3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F05A68382B58AC7100CE62E3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"hoverwheel/Preview Content\"";
+				DEVELOPMENT_TEAM = 65AMD2STXG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = hoverwheel/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Hoverwheel;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Allow for bluetooth use";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Allow for bluetooth use";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bwees.hoverwheel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		F05A68392B58AC7100CE62E3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"hoverwheel/Preview Content\"";
+				DEVELOPMENT_TEAM = 65AMD2STXG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = hoverwheel/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Hoverwheel;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Allow for bluetooth use";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Allow for bluetooth use";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bwees.hoverwheel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		F07559582B5A45D500705C2D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 65AMD2STXG;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Hoverwheel Complication/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Hoverwheel Complication";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bwees.hoverwheel.watchkitapp.Hoverwheel-Complication";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.2;
+			};
+			name = Debug;
+		};
+		F07559592B5A45D500705C2D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 65AMD2STXG;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Hoverwheel Complication/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Hoverwheel Complication";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bwees.hoverwheel.watchkitapp.Hoverwheel-Complication";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.2;
+			};
+			name = Release;
+		};
+		F0B21FBA2B5A1CCF00676099 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Hoverwheel Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = 65AMD2STXG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "hoverwheel-watch-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hoverwheel;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.bwees.hoverwheel;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bwees.hoverwheel.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.2;
+			};
+			name = Debug;
+		};
+		F0B21FBB2B5A1CCF00676099 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Hoverwheel Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = 65AMD2STXG;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "hoverwheel-watch-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hoverwheel;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.bwees.hoverwheel;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bwees.hoverwheel.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.2;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F05A68242B58AC7000CE62E3 /* Build configuration list for PBXProject "hoverwheel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F05A68352B58AC7100CE62E3 /* Debug */,
+				F05A68362B58AC7100CE62E3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F05A68372B58AC7100CE62E3 /* Build configuration list for PBXNativeTarget "Hoverwheel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F05A68382B58AC7100CE62E3 /* Debug */,
+				F05A68392B58AC7100CE62E3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F07559572B5A45D500705C2D /* Build configuration list for PBXNativeTarget "Hoverwheel ComplicationExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F07559582B5A45D500705C2D /* Debug */,
+				F07559592B5A45D500705C2D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F0B21FB92B5A1CCF00676099 /* Build configuration list for PBXNativeTarget "Hoverwheel Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F0B21FBA2B5A1CCF00676099 /* Debug */,
+				F0B21FBB2B5A1CCF00676099 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F05A68212B58AC7000CE62E3 /* Project object */;
+}
