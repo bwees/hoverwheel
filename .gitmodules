@@ -1,7 +1,3 @@
 [submodule "firmware/lib/mpu6050"]
 	path = firmware/lib/mpu6050
 	url = https://github.com/ElectronicCats/mpu6050
-[submodule "firmware/lib/bipropellant-hoverboard-api"]
-	path = firmware/lib/bipropellant-hoverboard-api
-	url = https://github.com/alex-makarov/bipropellant-hoverboard-api
-	branch = ctor-fix

@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <HoverboardAPI.h>
 #include <Wire.h>
 #include <MPU6050.h>
 #include <FastLED.h>
@@ -7,13 +6,10 @@
 #include <Preferences.h>
 #include "config.h"
 #include "mahony.h"
+#include "hoverboard_esc.h"
 
-int serialWrapper(unsigned char *data, int len) {
-  return (int) Serial.write(data,len);
-}
-
-HoverboardAPI hoverboard = HoverboardAPI(serialWrapper);
-MPU6050 mpu;
+MPU6050 mpu(0x69);
+Hoverboard esc;
 
 //macro that returns +1/-1 depending on the sign of the argument
 #define SIGN(x) ((x > 0) - (x < 0))
@@ -37,6 +33,11 @@ float step_up_start = 0;
 int filter_last_update = micros();
 int last_ble_update = millis();
 int last_param_update = -1;
+int packets = 0;
+
+//footpad
+int footpad_a = 0;
+int footpad_b = 0;
 
 // Control loop parameters
 struct {
@@ -53,16 +54,21 @@ struct {
   float step_up_angle;
   float step_up_speed;
   float imu_offset;
+  bool headlightOn;
+  int btUpdateInterval;
+  int compensatedKpPrescale;
+  int compensatedKpPostscale;
+  int maxMotorPWM;
 } control_params;
 
 
 CRGB leds[NUM_LEDS];
 
-// BLE
+// BLE SERVICES
 BLEService controlService("19b10000-e8f2-537e-4f6c-d104768a1215"); // create service
 BLEService statsService("19a10000-e8f2-537e-4f6c-d104768a1215"); // create service
 
-// create switch characteristic and allow remote device to read and write
+// CONTROL SETTINGS
 BLEIntCharacteristic pChar("19b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLEWrite);
 BLEIntCharacteristic rpChar("39b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLEWrite);
 BLEFloatCharacteristic fkpChar("a9b1cc01-e8f2-537e-4f6c-d104768a1214", BLERead | BLEWrite);
@@ -76,8 +82,13 @@ BLEFloatCharacteristic rideAngleChar("7d0f689a-8be0-11ee-b9d1-0242ac120002", BLE
 BLEFloatCharacteristic stepUpAngleChar("8d0f689a-8be0-11ee-b9d1-0242ac120002", BLERead | BLEWrite);
 BLEFloatCharacteristic stepUpSpeedChar("9d0f689a-8be0-11ee-b9d1-0242ac120002", BLERead | BLEWrite);
 BLEFloatCharacteristic imuOffsetChar("0d0f689a-8be0-11ee-b9d1-0242ac120002", BLERead | BLEWrite);
+BLEBoolCharacteristic headlightChar("277589d2-cfc2-4d27-937f-f5d299b769b5", BLERead | BLEWrite);
+BLEIntCharacteristic btUpdateInterval("377589d2-cfc2-4d27-937f-f5d299b769b5", BLERead | BLEWrite);
+BLEIntCharacteristic compensatedKPPrescaleChar("477589d2-cfc2-4d27-937f-f5d299b769b5", BLERead | BLEWrite);
+BLEIntCharacteristic compensatedKPPostscaleChar("577589d2-cfc2-4d27-937f-f5d299b769b5", BLERead | BLEWrite);
+BLEIntCharacteristic maxMotorPWMChar("677589d2-cfc2-4d27-937f-f5d299b769b5", BLERead | BLEWrite);
 
-
+// TELEMETRY
 BLEIntCharacteristic stateChar("49b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
 BLEFloatCharacteristic angleChar("59B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
 BLEIntCharacteristic pwmChar("69b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
@@ -86,24 +97,47 @@ BLEIntCharacteristic footpadBChar("79b10001-e8f2-537e-4f6c-d104768a1214", BLERea
 BLEIntCharacteristic loopTimeChar("89b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
 BLEFloatCharacteristic targetChar("99b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
 BLEFloatCharacteristic batteryChar("a9b10001-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
+BLEFloatCharacteristic boardTempChar("423ed38f-e856-45e7-9a6e-ec9e51c3aba1", BLERead | BLENotify);
+BLEIntCharacteristic wheelSpeedChar("523ed38f-e856-45e7-9a6e-ec9e51c3aba1", BLERead | BLENotify);
+BLEFloatCharacteristic compensatedKpChar("623ed38f-e856-45e7-9a6e-ec9e51c3aba1", BLERead | BLENotify);
+
+
 
 void blePeripheralConnectHandler(BLEDevice central) {
   // central connected event handler
-  Serial.print("Connected event, central: ");
-  Serial.println(central.address());
+  // Serial.print("Connected event, central: ");
+  // Serial.println(central.address());
 }
 
 void blePeripheralDisconnectHandler(BLEDevice central) {
   // central disconnected event handler
-  Serial.print("Disconnected event, central: ");
-  Serial.println(central.address());
+  // Serial.print("Disconnected event, central: ");
+  // Serial.println(central.address());
 }
 
-int calc_pid(float currentAngle, float rotationRate) {
+void handleBLE(void* params) {
+  while (true) {
+    BLE.poll();
+    delay(2);
+  }
+}
+
+void handleFootpads(void* params) {
+  while (true) {
+    footpad_a = analogRead(FOOTPAD_A_PIN);
+    footpad_b = analogRead(FOOTPAD_B_PIN);
+    #ifdef SINGLE_FOOTPAD
+    footpad_a = footpad_b;
+    #endif
+    delay(2);
+  }
+}
+
+int calc_pid(float currentAngle, float rotationRate, float compensatedKp) {
   float error = targetAngle - currentAngle;
-  float p_comp = error * control_params.kp;
+  float p_comp = error * compensatedKp;
   float rp_comp = rotationRate * control_params.krp;
-  return constrain(p_comp + rp_comp, -MAX_PWM, MAX_PWM);
+  return constrain(p_comp + rp_comp, -control_params.maxMotorPWM, control_params.maxMotorPWM);
 }
 
 int calcPads(int footpad_a, int footpad_b) {
@@ -131,6 +165,11 @@ void setupPreferences() {
   control_params.step_up_angle = preferences.getFloat("step_up_angle", 10.f);
   control_params.step_up_speed = preferences.getFloat("step_up_speed", 90.f);
   control_params.imu_offset = preferences.getFloat("imu_offset", 0.f);
+  control_params.compensatedKpPrescale = preferences.getInt("compensatedKpPrescale", 250);
+  control_params.compensatedKpPostscale = preferences.getInt("compensatedKpPostscale", 100);
+  control_params.maxMotorPWM = preferences.getInt("maxMotorPWM", 600);
+  control_params.headlightOn = false;
+  control_params.btUpdateInterval = 500;
 
   // write to BLE characteristics
   pChar.writeValue(control_params.kp);
@@ -146,6 +185,11 @@ void setupPreferences() {
   stepUpAngleChar.writeValue(control_params.step_up_angle);
   stepUpSpeedChar.writeValue(control_params.step_up_speed);
   imuOffsetChar.writeValue(control_params.imu_offset);
+  headlightChar.writeValue(control_params.headlightOn);
+  compensatedKPPrescaleChar.writeValue(control_params.compensatedKpPrescale);
+  compensatedKPPostscaleChar.writeValue(control_params.compensatedKpPostscale);
+  maxMotorPWMChar.writeValue(control_params.maxMotorPWM);
+  btUpdateInterval.writeValue(control_params.btUpdateInterval);
 
   preferences.end();
 }
@@ -167,6 +211,9 @@ void writePreferences() {
   preferences.putFloat("step_up_angle", control_params.step_up_angle);
   preferences.putFloat("step_up_speed", control_params.step_up_speed);
   preferences.putFloat("imu_offset", control_params.imu_offset);
+  preferences.putInt("compensatedKpPrescale", control_params.compensatedKpPrescale);
+  preferences.putInt("compensatedKpPostscale", control_params.compensatedKpPostscale);
+  preferences.putInt("maxMotorPWM", control_params.maxMotorPWM);
 
   preferences.end();
 }
@@ -185,39 +232,63 @@ void charachteristicWritten(BLEDevice central, BLECharacteristic characteristic)
   control_params.step_up_angle = stepUpAngleChar.value();
   control_params.step_up_speed = stepUpSpeedChar.value();
   control_params.imu_offset = imuOffsetChar.value();
+  control_params.headlightOn = headlightChar.value();
+  control_params.btUpdateInterval = btUpdateInterval.value();
+  control_params.compensatedKpPrescale = compensatedKPPrescaleChar.value();
+  control_params.compensatedKpPostscale = compensatedKPPostscaleChar.value();
+  control_params.maxMotorPWM = maxMotorPWMChar.value();
 
   last_param_update = millis();
 }
 
+void led_task(void* parameters) {
+  FastLED.setBrightness(255);
+  while (true) {
+    if (control_params.headlightOn == true) {
+      FastLED.showColor(CRGB::White);
+    }
+    else if (state == STATE_IDLE) {
+      FastLED.showColor(CRGB::Blue);
+    }
+    else if ( state == STATE_RIDING) {
+      FastLED.showColor(CRGB::Green);
+    } 
+    if (state == STATE_PUSHBACK) {
+      FastLED.showColor(CRGB::Red);
+    }
+    delay(100);
+  }
+}
+
 void setup() {
-  Wire.begin(3, 2);
+  Wire.begin(32, 33);
   Wire.setClock(400000);
-  Serial.begin(115200);
+
+  Serial2.begin(115200, SERIAL_8N1); // redefine RX pin 
 
   mpu.initialize();
-  mpu.setDLPFMode(MPU6050_IMU::MPU6050_DLPF_BW_98); // 98Hz
+  mpu.setDLPFMode(MPU6050_DLPF_BW_98); // 98Hz
 
-  mpu.setXGyroOffset(145);
-  mpu.setYGyroOffset(32);
-  mpu.setZGyroOffset(-33);
-  mpu.setXAccelOffset(-5558);
-  mpu.setYAccelOffset(-2118);
-  mpu.setZAccelOffset(1218);
-
+  mpu.setXAccelOffset(823);
+  mpu.setYAccelOffset(2446);
+  mpu.setZAccelOffset(1122);
+  mpu.setXGyroOffset(-12);
+  mpu.setYGyroOffset(15);
+  mpu.setZGyroOffset(-27);
 
   pinMode(FOOTPAD_A_PIN, INPUT);
   pinMode(FOOTPAD_B_PIN, INPUT);
-  // FastLED.addLeds<WS2812, 8, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
+  FastLED.addLeds<WS2812, LED_FRONT_PIN, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
 
   // begin initialization
   if (!BLE.begin()) {
-    Serial.println("starting Bluetooth® Low Energy module failed!");
-
     while (1);
   }
 
-  BLE.setLocalName("Hoverwheel");
-  BLE.setDeviceName("Hoverwheel");
+  gpio_pulldown_en(GPIO_NUM_20);
+
+  BLE.setLocalName("Hoverwheel - bwees");
+  BLE.setDeviceName("Hoverwheel - bwees");
 
   // BLE
   BLE.setAdvertisedService(controlService);
@@ -236,7 +307,11 @@ void setup() {
   controlService.addCharacteristic(stepUpAngleChar);
   controlService.addCharacteristic(stepUpSpeedChar);
   controlService.addCharacteristic(imuOffsetChar);
-
+  controlService.addCharacteristic(headlightChar);
+  controlService.addCharacteristic(compensatedKPPrescaleChar);
+  controlService.addCharacteristic(compensatedKPPostscaleChar);
+  controlService.addCharacteristic(maxMotorPWMChar);
+  controlService.addCharacteristic(btUpdateInterval);
 
   statsService.addCharacteristic(stateChar);
   statsService.addCharacteristic(angleChar);
@@ -246,7 +321,9 @@ void setup() {
   statsService.addCharacteristic(loopTimeChar);
   statsService.addCharacteristic(targetChar);
   statsService.addCharacteristic(batteryChar);
-
+  statsService.addCharacteristic(boardTempChar);
+  statsService.addCharacteristic(wheelSpeedChar);
+  statsService.addCharacteristic(compensatedKpChar);
 
   // add service
   BLE.addService(controlService);
@@ -274,6 +351,16 @@ void setup() {
   stepUpAngleChar.setEventHandler(BLEWritten, charachteristicWritten);
   stepUpSpeedChar.setEventHandler(BLEWritten, charachteristicWritten);
   imuOffsetChar.setEventHandler(BLEWritten, charachteristicWritten);
+  headlightChar.setEventHandler(BLEWritten, charachteristicWritten);
+  compensatedKPPrescaleChar.setEventHandler(BLEWritten, charachteristicWritten);
+  compensatedKPPostscaleChar.setEventHandler(BLEWritten, charachteristicWritten);
+  maxMotorPWMChar.setEventHandler(BLEWritten, charachteristicWritten);
+  btUpdateInterval.setEventHandler(BLEWritten, charachteristicWritten);
+
+  // start BLE task
+  xTaskCreatePinnedToCore(handleBLE, "BLE", 10000, NULL, 1, NULL, 0);
+  xTaskCreatePinnedToCore(handleFootpads, "Footpads", 10000, NULL, 1, NULL, 0);
+  xTaskCreatePinnedToCore(led_task, "LED", 10000, NULL, 1, NULL, 0);
 
   setupPreferences();
 }
@@ -281,7 +368,6 @@ void setup() {
 void loop() {
   // Loop Performance Timer
   long startMicros = micros();
-  BLE.poll();
 
   int now = micros();
   // Serial.println(now - filter_last_update);
@@ -315,16 +401,23 @@ void loop() {
   // float pitch = asin(2.0 * (q[0] * q[2] - q[1] * q[3]));
   float board_tilt = atan2((mahony_q[0] * mahony_q[1] + mahony_q[2] * mahony_q[3]), 0.5 - (mahony_q[1] * mahony_q[1] + mahony_q[2] * mahony_q[2]));
   board_tilt *= 180.0/PI;
+
+  // handle sensor being upside down and flipping between 180 and -180
+  if (board_tilt > 90) {
+    board_tilt = 180 - board_tilt;
+  } else if (board_tilt < -90) {
+    board_tilt = -180 - board_tilt;
+  }
+
   board_tilt += control_params.ride_angle;
   board_tilt += control_params.imu_offset;
   board_tilt *= -1; // flip imu
 
-  // int motor_speed = hoverboard.getSpeed0_kmh();
+
+  ////////////// ESC TELEMETRY ////////////// 
+  esc.receiveTelemetry();
 
   //////////////// FOOTPADS //////////////// 
-  int footpad_a = analogRead(FOOTPAD_A_PIN);
-  int footpad_b = analogRead(FOOTPAD_B_PIN);
-  footpad_a = footpad_b;
   int footpad = (footpad_a > control_params.footpad_a_thresh) + (footpad_b > control_params.footpad_a_thresh);
 
 
@@ -345,7 +438,7 @@ void loop() {
 
   // if the footpad is pressed, and the board is idle
   // and the board is +- 10 degrees from the target angle
-  if (footpad == 2 && state == STATE_IDLE && abs(board_tilt - targetAngle) < control_params.step_up_angle) {
+  if (footpad == 2 && state == STATE_IDLE && (-5 < (control_params.step_up_angle+board_tilt)) && (0 > (control_params.step_up_angle+board_tilt))) {
     state = STATE_RIDING;
     targetAngle = board_tilt;
     step_up_start = millis();
@@ -360,7 +453,7 @@ void loop() {
   //////////////// PUSHBACK ////////////////
 
   // if PWM is above threshold 
-  if (abs(pwm_cmd) > MAX_PWM*control_params.pushback_threshold) {
+  if (abs(pwm_cmd) > control_params.maxMotorPWM*control_params.pushback_threshold) {
     pushback_end_timer = 0;
 
     if (state == STATE_RIDING) {
@@ -375,7 +468,7 @@ void loop() {
         pushback_start_time = millis();
       }
     }
-  } else if (abs(pwm_cmd) < MAX_PWM*control_params.pushback_threshold) {
+  } else if (abs(pwm_cmd) < control_params.maxMotorPWM*control_params.pushback_threshold) {
     pushback_start_timer = 0;
 
     if (state == STATE_PUSHBACK) {
@@ -406,21 +499,15 @@ void loop() {
       pushback_start_time = 0;
     }
   }
-  
-  // handle pushback beeps
-  if (state == STATE_PUSHBACK) {
-    int time_since_beep = millis() - last_beep;
-
-    if (time_since_beep > 250) {
-      last_beep = millis();
-      hoverboard.sendBuzzer(4, 0, 50, PROTOCOL_SOM_NOACK);
-    }
-  }
 
   ///////////// LEVELING LOGIC /////////////
 
   // get PWM command
-  int pid_out = calc_pid(board_tilt, gx);
+  float kpCompensation = map(abs(esc.feedback.speedL_meas), 0, control_params.compensatedKpPrescale, 0, control_params.compensatedKpPostscale);
+  kpCompensation = constrain(kpCompensation, 0, control_params.compensatedKpPostscale);
+
+  float compensatedKp = control_params.kp + kpCompensation;
+  int pid_out = calc_pid(board_tilt, gx, compensatedKp);
 
   if (state != STATE_IDLE) {
     pwm_cmd = pid_out;
@@ -429,20 +516,7 @@ void loop() {
     pwm_cmd = 0;
   }
 
-
-  if (state == STATE_IDLE) {
-    FastLED.showColor(CRGB::Blue);
-  }
-  if ( state == STATE_RIDING) {
-    FastLED.showColor(CRGB::Green);
-  } 
-  if (state == STATE_PUSHBACK) {
-    FastLED.showColor(CRGB::Red);
-  }
-
-
-
-  if (millis() - last_ble_update > 100) {
+  if (millis() - last_ble_update > control_params.btUpdateInterval) {
     // update BLE
     stateChar.writeValue(state);
     angleChar.writeValue(board_tilt);
@@ -450,8 +524,11 @@ void loop() {
     footpadAChar.writeValue(footpad_a);
     footpadBChar.writeValue(footpad_b);
     targetChar.writeValue(targetAngle);
+    batteryChar.writeValue(esc.feedback.batVoltage/100.0);
+    boardTempChar.writeValue(esc.feedback.boardTemp);
+    wheelSpeedChar.writeValue(esc.feedback.speedL_meas);
+    compensatedKpChar.writeValue(compensatedKp);
     loopTimeChar.writeValue(micros() - startMicros);
-    batteryChar.writeValue(0);
 
     last_ble_update = millis();
   }
@@ -462,11 +539,10 @@ void loop() {
     last_param_update = -1;
   }
 
-  hoverboard.sendDifferentialPWM(pwm_cmd, pwm_cmd, PROTOCOL_SOM_NOACK);
-  // #ifndef DEBUG
-  // #else
-  //   // Serial.println("ANGLE:" + String(board_tilt) + ",TARGET:" + String(targetAngle) + ",PWM:" + String(pwm_cmd) + ",STATE:" + String(state) + ",FOOTPAD:" + String(footpad) + ",LOOP_TIME:" + String(micros() - startMicros));
-  // #endif
+  // update esc data
+  esc.speedCmd = pwm_cmd;
+  esc.sendCommand();
+
 
   while (micros() - startMicros < 2000);
 }
