@@ -260,32 +260,11 @@ void led_task(void* parameters) {
   }
 }
 
-void setup() {
-  Wire.begin(32, 33);
-  Wire.setClock(400000);
-
-  Serial2.begin(115200, SERIAL_8N1); // redefine RX pin 
-
-  mpu.initialize();
-  mpu.setDLPFMode(MPU6050_DLPF_BW_98); // 98Hz
-
-  mpu.setXAccelOffset(823);
-  mpu.setYAccelOffset(2446);
-  mpu.setZAccelOffset(1122);
-  mpu.setXGyroOffset(-12);
-  mpu.setYGyroOffset(15);
-  mpu.setZGyroOffset(-27);
-
-  pinMode(FOOTPAD_A_PIN, INPUT);
-  pinMode(FOOTPAD_B_PIN, INPUT);
-  FastLED.addLeds<WS2812, LED_FRONT_PIN, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
-
-  // begin initialization
+void setup_ble() {
+    // begin initialization
   if (!BLE.begin()) {
     while (1);
   }
-
-  gpio_pulldown_en(GPIO_NUM_20);
 
   BLE.setLocalName("Hoverwheel - bwees");
   BLE.setDeviceName("Hoverwheel - bwees");
@@ -356,6 +335,30 @@ void setup() {
   compensatedKPPostscaleChar.setEventHandler(BLEWritten, charachteristicWritten);
   maxMotorPWMChar.setEventHandler(BLEWritten, charachteristicWritten);
   btUpdateInterval.setEventHandler(BLEWritten, charachteristicWritten);
+
+}
+
+void setup() {
+  Wire.begin(32, 33);
+  Wire.setClock(400000);
+
+  Serial2.begin(115200, SERIAL_8N1); // redefine RX pin 
+
+  mpu.initialize();
+  mpu.setDLPFMode(MPU6050_DLPF_BW_98); // 98Hz
+
+  mpu.setXAccelOffset(823);
+  mpu.setYAccelOffset(2446);
+  mpu.setZAccelOffset(1122);
+  mpu.setXGyroOffset(-12);
+  mpu.setYGyroOffset(15);
+  mpu.setZGyroOffset(-27);
+
+  pinMode(FOOTPAD_A_PIN, INPUT);
+  pinMode(FOOTPAD_B_PIN, INPUT);
+  FastLED.addLeds<WS2812, LED_FRONT_PIN, GRB>(leds, NUM_LEDS);  // GRB ordering is assumed
+
+  setup_ble();
 
   // start BLE task
   xTaskCreatePinnedToCore(handleBLE, "BLE", 10000, NULL, 1, NULL, 0);
@@ -428,10 +431,10 @@ void loop() {
   }
 
   // if the board is not idle
-  // 
   if (state != STATE_IDLE && (footpad == 0 || (footpad < 2) && abs(pwm_cmd) < 150)) {
     // if the footpad has been released for more than FOOTPAD_DEACTIVATE_DELAY ms
     if (millis() - last_footpad_change > FOOTPAD_DEACTIVATE_DELAY) {
+      // deactivate the board
       state = STATE_IDLE;
     }
   } 
@@ -439,6 +442,7 @@ void loop() {
   // if the footpad is pressed, and the board is idle
   // and the board is +- 10 degrees from the target angle
   if (footpad == 2 && state == STATE_IDLE && (-5 < (control_params.step_up_angle+board_tilt)) && (0 > (control_params.step_up_angle+board_tilt))) {
+    // activate the board at the start angle and record the time
     state = STATE_RIDING;
     targetAngle = board_tilt;
     step_up_start = millis();
@@ -453,7 +457,7 @@ void loop() {
   //////////////// PUSHBACK ////////////////
 
   // if PWM is above threshold 
-  if (abs(pwm_cmd) > control_params.maxMotorPWM*control_params.pushback_threshold) {
+  if (abs(pwm_cmd) > control_params.maxMotorPWM*control_params.pushback_threshold) { // pushback activation
     pushback_end_timer = 0;
 
     if (state == STATE_RIDING) {
@@ -468,7 +472,7 @@ void loop() {
         pushback_start_time = millis();
       }
     }
-  } else if (abs(pwm_cmd) < control_params.maxMotorPWM*control_params.pushback_threshold) {
+  } else if (abs(pwm_cmd) < control_params.maxMotorPWM*control_params.pushback_threshold) { // pushback deactivation
     pushback_start_timer = 0;
 
     if (state == STATE_PUSHBACK) {
@@ -502,13 +506,15 @@ void loop() {
 
   ///////////// LEVELING LOGIC /////////////
 
-  // get PWM command
+  // calculate kp compensation
   float kpCompensation = map(abs(esc.feedback.speedL_meas), 0, control_params.compensatedKpPrescale, 0, control_params.compensatedKpPostscale);
   kpCompensation = constrain(kpCompensation, 0, control_params.compensatedKpPostscale);
 
+  // get PWM command
   float compensatedKp = control_params.kp + kpCompensation;
   int pid_out = calc_pid(board_tilt, gx, compensatedKp);
 
+  // only send PWM if the board is not idle
   if (state != STATE_IDLE) {
     pwm_cmd = pid_out;
   } else {
@@ -516,8 +522,10 @@ void loop() {
     pwm_cmd = 0;
   }
 
+  //////////////// BLE ////////////////
+
+  // update BLE
   if (millis() - last_ble_update > control_params.btUpdateInterval) {
-    // update BLE
     stateChar.writeValue(state);
     angleChar.writeValue(board_tilt);
     pwmChar.writeValue(pwm_cmd);
@@ -533,11 +541,14 @@ void loop() {
     last_ble_update = millis();
   }
 
-
+  // only write parameters to flash if they have not been updated in 1 second
+  // they will be updated immediately in control params after they are changed
   if (millis() - last_param_update > 1000 && last_param_update != -1) {
     writePreferences();
     last_param_update = -1;
   }
+
+  //////////////// ESC COMMUNICATION ////////////////
 
   // update esc data
   esc.speedCmd = pwm_cmd;
