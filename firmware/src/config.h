@@ -6,6 +6,8 @@
 #define FOOTPAD_A_PIN 4
 #define FOOTPAD_B_PIN 15
 
+#define WHEEL_DIAMETER 11
+
 // LEDS
 #define NUM_LEDS 8
 #define LED_FRONT_PIN 18

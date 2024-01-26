@@ -14,6 +14,8 @@ Hoverboard esc;
 //macro that returns +1/-1 depending on the sign of the argument
 #define SIGN(x) ((x > 0) - (x < 0))
 
+#define MPH_TO_RPM(x) x * ((WHEEL_DIAMETER*3.14*60)/63360.0)
+
 // Board States
 #define STATE_IDLE 0
 #define STATE_RIDING 1
@@ -430,8 +432,9 @@ void loop() {
     last_footpad = footpad;
   }
 
-  // if the board is not idle
-  if (state != STATE_IDLE && (footpad == 0 || (footpad < 2) && abs(pwm_cmd) < 150)) {
+  // if the board is not idle and the footpad is not pressed 
+  // or the board speed is less than 2 mph and 1/2 footpad is pressed (heel lift)
+  if (state != STATE_IDLE && (footpad == 0 || (footpad < 2 && abs(esc.feedback.speedL_meas) < MPH_TO_RPM(2)))) {
     // if the footpad has been released for more than FOOTPAD_DEACTIVATE_DELAY ms
     if (millis() - last_footpad_change > FOOTPAD_DEACTIVATE_DELAY) {
       // deactivate the board
@@ -439,7 +442,7 @@ void loop() {
     }
   } 
 
-  // if the footpad is pressed, and the board is idle
+  // if the footpad is completely pressed, and the board is idle
   // and the board is +- 10 degrees from the target angle
   if (footpad == 2 && state == STATE_IDLE && (-5 < (control_params.step_up_angle+board_tilt)) && (0 > (control_params.step_up_angle+board_tilt))) {
     // activate the board at the start angle and record the time
