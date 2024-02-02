@@ -13,6 +13,6 @@
 #define LED_FRONT_PIN 18
 
 //footpads
-#define SINGLE_FOOTPAD
+// #define SINGLE_FOOTPAD
 
 #define HoverSerial Serial2
