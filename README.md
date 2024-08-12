@@ -6,7 +6,7 @@ This project set out to make an Onewheel alternative for under $400. Hoverwheel 
 An ESP32 provides high-speed balance control and control parameter adjustments over BLE.
 This project does not use VESC and instead, the control algorithm has been written from scratch.
 
-See the V1 writeup here: https://bwees.io/projects/hoverwheel-v1
+See the V1 writeup here: https://bwees.io/blog/hoverwheel-v1
 
 ## Firmware
 The firmware was written in C++ with the Arduino framework inside of PlatformIO. Arduino was used to maximize compatibility with other microcontrollers.
